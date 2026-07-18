@@ -274,6 +274,24 @@
             </div>
         </div>
 
+        <div id="modal-add-boss" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+        <h4 class="font-bold text-md text-red-500 greek-title">Новый Босс</h4>
+        <div>
+            <label class="text-xs text-slate-400 block mb-1">Название цели</label>
+            <input id="new-boss-title" type="text" placeholder="Например: Новый монитор" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 block mb-1">Целевая сумма (KZT)</label>
+            <input id="new-boss-target" type="number" placeholder="50000" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200">
+        </div>
+        <div class="flex space-x-3 pt-2">
+            <button onclick="toggleModal('modal-add-boss', false)" class="flex-1 py-2 rounded-lg bg-slate-800 text-xs text-slate-400 font-bold">Отмена</button>
+            <button onclick="createNewBoss()" class="flex-1 py-2 rounded-lg bg-red-500 text-xs text-slate-950 font-bold">Создать</button>
+        </div>
+    </div>
+        </div>
+        
     </div>
 
     <!-- ЛОГИКА ПРИЛОЖЕНИЯ НА JAVASCRIPT -->
@@ -825,6 +843,98 @@
             loadGameState();
             getNewQuote();
         }
+
+        // Добавь в gameState массив, если его нет
+    // Инициализация (если нет данных в localStorage)
+    let gameState = {
+        level: 1, xp: 0, gold: 0,
+        endurance: 10, spirituality: 10,
+        quests: [...], // твои текущие квесты
+        notes: [...],
+        bosses: [
+            { id: 1, name: "Полгода отношений с Даяной", targetKzt: 20000, currentKzt: 0, desc: "Собрать бюджет!" }
+        ],
+        rewards: [...]
+    };
+
+    // --- ЛОГИКА БОССОВ ---
+
+    // 1. Функция внесения денег
+    function payToBoss(bossId, amount) {
+        const boss = gameState.bosses.find(b => b.id === bossId);
+        if (boss) {
+            boss.currentKzt += parseInt(amount);
+            
+            // Если босс побежден
+            if (boss.currentKzt >= boss.targetKzt) {
+                alert(`ПОЗДРАВЛЯЮ! Босс "${boss.name}" повержен! 🎉`);
+                gameState.bosses = gameState.bosses.filter(b => b.id !== bossId);
+            }
+            saveGameState();
+            updateUi();
+        }
+    }
+
+    // 2. Добавление нового босса
+    function createNewBoss() {
+        const name = document.getElementById('new-boss-title').value;
+        const target = document.getElementById('new-boss-target').value;
+        
+        if (name && target > 0) {
+            gameState.bosses.push({
+                id: Date.now(),
+                name: name,
+                targetKzt: parseInt(target),
+                currentKzt: 0,
+                desc: "Новая финансовая цель"
+            });
+            saveGameState();
+            updateUi();
+            toggleModal('modal-add-boss', false);
+        }
+    }
+
+    // 3. Отрисовка боссов
+    function renderBosses() {
+        const container = document.getElementById('bosses-list');
+        container.innerHTML = '';
+
+        gameState.bosses.forEach(b => {
+            const percent = Math.min((b.currentKzt / b.targetKzt) * 100, 100);
+            const card = document.createElement('div');
+            card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3";
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-200">${b.name}</h4>
+                        <p class="text-[10px] text-slate-500">${b.desc}</p>
+                    </div>
+                    <span class="text-xs font-mono text-amber-500">${b.currentKzt} / ${b.targetKzt} KZT</span>
+                </div>
+                <div class="h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                    <div class="h-full bg-red-500 transition-all duration-500" style="width: ${percent}%"></div>
+                </div>
+                <button onclick="openBossPayment(${b.id})" class="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-bold uppercase">
+                    Атаковать (Внести KZT)
+                </button>
+            `;
+            container.appendChild(card);
+        });
+        
+        // Кнопка "Добавить босса"
+        container.innerHTML += `<button onclick="toggleModal('modal-add-boss', true)" class="w-full py-3 border border-dashed border-slate-700 rounded-xl text-slate-500 text-xs hover:border-amber-500 hover:text-amber-500">+ Добавить нового босса</button>`;
+    }
+
+    // Утилиты модалок
+    function openBossPayment(id) {
+        document.getElementById('boss-pay-btn').onclick = () => {
+            const amount = document.getElementById('boss-pay-amount').value;
+            payToBoss(id, amount);
+            toggleModal('modal-boss-pay', false);
+        };
+        toggleModal('modal-boss-pay', true);
+    }
+        
     </script>
 </body>
 </html>
