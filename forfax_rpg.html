@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FORFAX RPG — Ассистент & Качай Жизнь</title>
+    <!-- Tailwind CSS для дизайна -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #030712;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .greek-title {
+            font-family: 'Cinzel', serif;
+        }
+        @keyframes breathe-inhale {
+            0% { transform: scale(1); background-color: rgba(16, 185, 129, 0.2); }
+            100% { transform: scale(1.3); background-color: rgba(16, 185, 129, 0.4); }
+        }
+        @keyframes breathe-exhale {
+            0% { transform: scale(1.3); background-color: rgba(16, 185, 129, 0.4); }
+            100% { transform: scale(1); background-color: rgba(16, 185, 129, 0.2); }
+        }
+        .breathe-inhale {
+            animation: breathe-inhale 4s infinite cubic-bezier(0.4, 0, 0.2, 1) alternate;
+        }
+        .gold-glow {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        }
+        .emerald-glow {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col min-h-screen">
+
+    <div class="w-full max-w-md mx-auto flex flex-col flex-grow bg-slate-950 border-x border-slate-900 shadow-2xl relative pb-20 overflow-hidden">
+        
+        <!-- ВЕРХНЯЯ ПАНЕЛЬ: ПРОФИЛЬ И СМЕНА -->
+        <header class="p-4 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full border-2 border-amber-500/50 flex items-center justify-center bg-slate-800 overflow-hidden gold-glow">
+                        <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-sm text-amber-500 greek-title uppercase tracking-wider">СЕНЯ (FORFAX)</h2>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-mono" id="player-lvl">LVL 1</span>
+                            <span class="text-[10px] text-slate-400" id="player-xp-text">0 / 100 XP</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Золото игрока -->
+                <div class="flex items-center space-x-1.5 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30">
+                    <span class="text-amber-500 font-bold font-mono text-sm" id="player-gold">0</span>
+                    <svg class="w-4 h-4 text-amber-500 fill-current" viewBox="0 0 20 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="8"></circle>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- ТАЙМЕР СМЕНЫ (11:00 - 19:00) -->
+            <div class="mt-3 bg-slate-950/80 rounded-lg p-2 border border-slate-800 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider flex items-center">
+                    <span class="mr-1.5">⏰</span> Рабочая смена:
+                </span>
+                <span id="work-countdown" class="text-xs font-mono font-bold text-amber-400">Расчет времени...</span>
+            </div>
+
+            <!-- Шкала опыта (XP) -->
+            <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div class="bg-amber-500 h-full transition-all duration-500" id="player-xp-bar" style="width: 0%"></div>
+            </div>
+
+            <!-- Характеристики -->
+            <div class="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-slate-800/50">
+                <div class="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
+                    <span class="text-xs text-slate-400 flex items-center">
+                        <span class="mr-1.5">⚡</span> Вынос:
+                    </span>
+                    <span class="text-xs font-mono font-bold text-emerald-400" id="stat-endurance">10</span>
+                </div>
+                <div class="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
+                    <span class="text-xs text-slate-400 flex items-center">
+                        <span class="mr-1.5">🌀</span> Духовн:
+                    </span>
+                    <span class="text-xs font-mono font-bold text-purple-400" id="stat-spirituality">10</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ОСНОВНОЙ КОНТЕНТ -->
+        <main class="flex-grow p-4 overflow-y-auto">
+            
+            <!-- ВКЛАДКА 1: КВЕСТЫ (Задания) -->
+            <section id="tab-quests" class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-slate-200 greek-title tracking-wide flex items-center">
+                        <span class="mr-2">⚔️</span> Твои квесты
+                    </h3>
+                    <button onclick="toggleModal('modal-add-quest', true)" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-500 border border-slate-700 px-2.5 py-1.5 rounded-lg flex items-center transition-all">
+                        + Квест руками
+                    </button>
+                </div>
+
+                <div class="space-y-2.5" id="quests-list">
+                    <!-- Заполняется из JS -->
+                </div>
+            </section>
+
+            <!-- ВКЛАДКА 2: ЗАМЕТКИ (Генератор авто-квестов) -->
+            <section id="tab-notes" class="space-y-4 hidden">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-slate-200 greek-title tracking-wide flex items-center">
+                        <span class="mr-2">📝</span> Заметки & Цели
+                    </h3>
+                    <button onclick="toggleModal('modal-add-note', true)" class="text-xs bg-amber-500 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg flex items-center transition-all">
+                        + Добавить
+                    </button>
+                </div>
+                <p class="text-xs text-slate-400">Пиши сюда всё: найденных клиентов, мысли, новые дела. Система сама сгенерирует квест на основе твоих записей!</p>
+
+                <!-- Список заметок -->
+                <div class="space-y-3" id="notes-list">
+                    <!-- Заполняется из JS -->
+                </div>
+            </section>
+
+            <!-- ВКЛАДКА 3: БОССЫ (Глобальные цели) -->
+            <section id="tab-bosses" class="space-y-4 hidden">
+                <h3 class="font-bold text-lg text-slate-200 greek-title tracking-wide flex items-center">
+                    <span class="mr-2">🐉</span> Эпические Боссы
+                </h3>
+                <p class="text-xs text-slate-400">Твои глобальные финансовые вехи. Вноси реальные отложенные тенге (KZT) здесь, чтобы продвигать шкалу победы!</p>
+
+                <div class="space-y-4" id="bosses-list">
+                    <!-- Заполняется из JS -->
+                </div>
+            </section>
+
+            <!-- ВКЛАДКА 4: МАГАЗИН (Награды) -->
+            <section id="tab-shop" class="space-y-4 hidden">
+                <h3 class="font-bold text-lg text-slate-200 greek-title tracking-wide flex items-center">
+                    <span class="mr-2">💎</span> Магазин Наград
+                </h3>
+                <p class="text-xs text-slate-400">Трать накопленное золото на реальный отдых и маленькие радости без грызущей совести!</p>
+
+                <div class="grid grid-cols-1 gap-3" id="rewards-list">
+                    <!-- Заполняется из JS -->
+                </div>
+            </section>
+
+            <!-- ВКЛАДКА 5: ДЗЕН -->
+            <section id="tab-zen" class="space-y-4 hidden">
+                <h3 class="font-bold text-lg text-slate-200 greek-title tracking-wide flex items-center">
+                    <span class="mr-2">🧘</span> Дзен
+                </h3>
+
+                <div class="bg-slate-900 border border-emerald-500/20 p-5 rounded-xl flex flex-col items-center justify-center text-center relative overflow-hidden emerald-glow">
+                    <h4 class="font-bold text-sm text-emerald-400 uppercase tracking-wider mb-2">Антипаника: Квадратное Дыхание</h4>
+                    <p class="text-[11px] text-slate-400 mb-6 max-w-xs">Дыши по схеме: 4с вдох — 4с задержка — 4с выдох — 4с задержка. Пульс и тревога упадут.</p>
+                    
+                    <div id="breathe-circle" class="w-36 h-36 rounded-full bg-emerald-500/10 border-2 border-emerald-400 flex flex-col items-center justify-center transition-all duration-1000 relative">
+                        <span id="breathe-status" class="font-bold text-sm text-emerald-400 uppercase tracking-widest">Старт</span>
+                        <span id="breathe-timer" class="text-xs text-slate-400 mt-1 font-mono">0c</span>
+                    </div>
+
+                    <button id="breathe-btn" onclick="toggleBreathing()" class="mt-6 px-6 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/40 rounded-full font-bold text-xs uppercase tracking-wider transition-all">
+                        Запустить дзен
+                    </button>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <h4 class="font-bold text-xs text-amber-500 uppercase tracking-wider mb-3">Слово Мудреца на Сегодня:</h4>
+                    <p id="quote-text" class="text-sm italic text-slate-300">«Не смерть пугает человека, а страх потерять себя до её прихода.»</p>
+                    <p id="quote-author" class="text-xs text-slate-500 text-right mt-2">— Сенека (Стоицизм)</p>
+                    <button onclick="getNewQuote()" class="w-full mt-4 text-[10px] text-slate-400 hover:text-slate-200 underline transition-all">
+                        Получить другое наставление
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- НИЖНЯЯ НАВИГАЦИЯ (ТАБЫ) -->
+        <nav class="absolute bottom-0 left-0 right-0 h-16 bg-slate-900 border-t border-slate-800 flex items-center justify-around z-40">
+            <button onclick="switchTab('quests')" class="nav-btn flex flex-col items-center text-amber-500" id="btn-tab-quests">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <span class="text-[9px] mt-1 font-semibold">Квесты</span>
+            </button>
+            <button onclick="switchTab('notes')" class="nav-btn flex flex-col items-center text-slate-400" id="btn-tab-notes">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <span class="text-[9px] mt-1 fon Tt-semibold">Заметки</span>
+            </button>
+            <button onclick="switchTab('bosses')" class="nav-btn flex flex-col items-center text-slate-400" id="btn-tab-bosses">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span class="text-[9px] mt-1 font-semibold">Боссы</span>
+            </button>
+            <button onclick="switchTab('shop')" class="nav-btn flex flex-col items-center text-slate-400" id="btn-tab-shop">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <span class="text-[9px] mt-1 font-semibold">Магазин</span>
+            </button>
+            <button onclick="switchTab('zen')" class="nav-btn flex flex-col items-center text-slate-400" id="btn-tab-zen">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-[9px] mt-1 font-semibold">Дзен</span>
+            </button>
+        </nav>
+
+        <!-- МОДАЛЬНОЕ ОКНО: ДОБАВИТЬ КВЕСТ ВРУЧНУЮ -->
+        <div id="modal-add-quest" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+                <h4 class="font-bold text-md text-amber-500 greek-title">Создать Свой Квест</h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Название квеста</label>
+                        <input id="new-quest-title" type="text" placeholder="Например: Потренить 15 минут" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Прокачиваемый стат</label>
+                        <select id="new-quest-stat" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                            <option value="endurance">⚡ Выносливость (+10)</option>
+                            <option value="spirituality">🌀 Духовность (+10)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Награда в Золоте</label>
+                        <input id="new-quest-gold" type="number" value="15" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                    </div>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button onclick="toggleModal('modal-add-quest', false)" class="flex-1 py-2 rounded-lg bg-slate-800 text-xs text-slate-400 font-bold border border-slate-700">Отмена</button>
+                    <button onclick="createNewQuest()" class="flex-1 py-2 rounded-lg bg-amber-500 text-xs text-slate-950 font-bold">Создать квест</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- МОДАЛЬНОЕ ОКНО: ДОБАВИТЬ ЗАМЕТКУ -->
+        <div id="modal-add-note" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+                <h4 class="font-bold text-md text-amber-500 greek-title">Добавить заметку</h4>
+                <p class="text-[10px] text-slate-400">Например: "Нашел клиента Мадлен" (создаст квест по сайтам) или "Изучаю буддийские притчи" (создаст духовный квест).</p>
+                <div class="space-y-3">
+                    <textarea id="new-note-text" placeholder="Текст заметки..." rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200 resize-none"></textarea>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button onclick="toggleModal('modal-add-note', false)" class="flex-1 py-2 rounded-lg bg-slate-800 text-xs text-slate-400 font-bold border border-slate-700">Отмена</button>
+                    <button onclick="createNewNote()" class="flex-1 py-2 rounded-lg bg-amber-500 text-xs text-slate-950 font-bold">Добавить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- МОДАЛЬНОЕ ОКНО: ВНЕСТИ СРЕДСТВА НА БОССА -->
+        <div id="modal-boss-pay" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+                <h4 class="font-bold text-md text-amber-500 greek-title" id="pay-boss-title">Внести золото</h4>
+                <p class="text-xs text-slate-400">Сколько тенге (KZT) ты отложил сегодня на эту цель?</p>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Сумма в тенге (KZT)</label>
+                    <input id="boss-pay-amount" type="number" placeholder="Например: 5000" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button onclick="toggleModal('modal-boss-pay', false)" class="flex-1 py-2 rounded-lg bg-slate-800 text-xs text-slate-400 font-bold border border-slate-700">Отмена</button>
+                    <button id="boss-pay-btn" class="flex-1 py-2 rounded-lg bg-amber-500 text-xs text-slate-950 font-bold">Внести</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ЛОГИКА ПРИЛОЖЕНИЯ НА JAVASCRIPT -->
+    <script>
+        // Дефолтное состояние
+        let gameState = {
+            level: 1,
+            xp: 0,
+            gold: 0,
+            endurance: 10,
+            spirituality: 10,
+            quests: [
+                { id: 1, title: "Встать без ментальных загонов", rewardGold: 5, rewardXp: 10, stat: "spirituality", isCompletedToday: false, isDefault: true },
+                { id: 2, title: "Медитация 10 минут / Чтение Сенеки", rewardGold: 10, rewardXp: 15, stat: "spirituality", isCompletedToday: false, isDefault: true },
+                { id: 3, title: "Отработать смену у Ромы (или учебу)", rewardGold: 100, rewardXp: 50, stat: "endurance", isCompletedToday: false, isDefault: true },
+                { id: 4, title: "Написать Даяше теплое сообщение просто так", rewardGold: 10, rewardXp: 20, stat: "endurance", isCompletedToday: false, isDefault: true }
+            ],
+            notes: [
+                { id: 1, text: "Начал изучать буддизм и философию стоицизма.", date: "18.07.2026" },
+                { id: 2, text: "Решил откладывать по 5к на подарки в Kaspi.", date: "18.07.2026" }
+            ],
+            bosses: [
+                { id: 1, name: "Полгода отношений с Даяной", deadline: "22 августа", targetKzt: 20000, currentKzt: 0, desc: "Собрать бюджет на незабываемое свидание и душевный подарок!" },
+                { id: 2, name: "День рождения мамы Даяны", deadline: "30 августа", targetKzt: 15000, currentKzt: 0, desc: "Найти классный комнатный цветок в горшке или подарочный набор чая." },
+                { id: 3, name: "День рождения моей мамы", deadline: "12 октября", targetKzt: 20000, currentKzt: 0, desc: "Заблаговременно скопить на крутой и душевный подарок маме." }
+            ],
+            rewards: [
+                { id: 1, name: "Пропустить работу / Взять легальный отгул", cost: 1500, icon: "🚪", desc: "У тебя накопилось достаточно авторитета, чтобы устроить себе чил-дей." },
+                { id: 2, name: "Вечер тупняка в TikTok без чувства вины", cost: 200, icon: "📱", desc: "Купи себе 2 часа чистого ТТ. Мозг отдыхает, совесть не грызет." },
+                { id: 3, name: "Вкусный чит-мил (пицца / бургер / донер)", cost: 400, icon: "🍕", desc: "Разгрузка организма для восполнения энергии после жестких смен." },
+                { id: 4, name: "Купить пачку хорошего Шу Пуэра или Габы", cost: 350, icon: "🍵", desc: "Настоящий инструмент китайского дзена для снятия тревоги." }
+            ]
+        };
+
+        // Загрузка состояния из LocalStorage
+        function loadGameState() {
+            const savedState = localStorage.getItem('forfax_rpg_state');
+            if (savedState) {
+                try {
+                    gameState = JSON.parse(savedState);
+                } catch (e) {
+                    console.error("Ошибка загрузки", e);
+                }
+            }
+            updateUi();
+            startWorkTimer();
+        }
+
+        // Сохранение состояния
+        function saveGameState() {
+            localStorage.setItem('forfax_rpg_state', JSON.stringify(gameState));
+        }
+
+        // РАБОЧИЙ ТАЙМЕР (С 11:00 ДО 19:00)
+        function startWorkTimer() {
+            function updateTimer() {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMin = now.getMinutes();
+
+                const workStartHour = 11;
+                const workEndHour = 19;
+
+                const timerEl = document.getElementById('work-countdown');
+
+                // Проверка выходного (Воскресенье = 0)
+                if (now.getDay() === 0) {
+                    timerEl.innerText = "Сегодня воскресенье — ЧИЛЛ! 😎";
+                    timerEl.className = "text-xs font-bold text-emerald-400 font-mono";
+                    return;
+                }
+
+                // Проверка, идет ли смена сейчас
+                if (currentHour >= workStartHour && currentHour < workEndHour) {
+                    const endOfWork = new Date();
+                    endOfWork.setHours(workEndHour, 0, 0, 0);
+
+                    const diffMs = endOfWork - now;
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+                    timerEl.innerText = `Осталось: ${hours}ч ${mins}м ${secs}с`;
+                    timerEl.className = "text-xs font-mono font-bold text-amber-400";
+                } else {
+                    timerEl.innerText = "Вне смены! Время отдыха ☕";
+                    timerEl.className = "text-xs font-semibold text-slate-400 font-mono";
+                }
+            }
+            
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        // Переключение вкладок
+        function switchTab(tabName) {
+            const tabs = ['quests', 'notes', 'bosses', 'shop', 'zen'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-tab-${t}`).classList.remove('text-amber-500');
+                document.getElementById(`btn-tab-${t}`).classList.add('text-slate-400');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${tabName}`).classList.add('text-amber-500');
+            document.getElementById(`btn-tab-${tabName}`).classList.remove('text-slate-400');
+        }
+
+        // Обновление всех данных в UI
+        function updateUi() {
+            document.getElementById('player-lvl').innerText = `LVL ${gameState.level}`;
+            document.getElementById('player-gold').innerText = gameState.gold;
+            document.getElementById('stat-endurance').innerText = gameState.endurance;
+            document.getElementById('stat-spirituality').innerText = gameState.spirituality;
+
+            const xpNeeded = gameState.level * 100;
+            document.getElementById('player-xp-text').innerText = `${gameState.xp} / ${xpNeeded} XP`;
+            const xpPercent = Math.min((gameState.xp / xpNeeded) * 100, 100);
+            document.getElementById('player-xp-bar').style.width = `${xpPercent}%`;
+
+            renderQuests();
+            renderNotes();
+            renderBosses();
+            renderRewards();
+        }
+
+        // Квесты
+        function renderQuests() {
+            const container = document.getElementById('quests-list');
+            container.innerHTML = '';
+
+            gameState.quests.forEach(q => {
+                const isCompleted = q.isCompletedToday;
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border flex items-center justify-between transition-all ${
+                    isCompleted 
+                    ? 'bg-slate-900/30 border-slate-900 opacity-60' 
+                    : 'bg-slate-900 border-slate-800'
+                }`;
+
+                card.innerHTML = `
+                    <div class="space-y-1 pr-3 flex-1">
+                        <h4 class="text-xs font-semibold ${isCompleted ? 'line-through text-slate-500' : 'text-slate-200'}">${q.title}</h4>
+                        <div class="flex items-center space-x-2 text-[10px]">
+                            <span class="text-amber-400">💰 +${q.rewardGold} золота</span>
+                            <span class="text-slate-500">•</span>
+                            <span class="text-amber-500">✨ +${q.rewardXp} XP</span>
+                            <span class="text-slate-500">•</span>
+                            <span class="${q.stat === 'spirituality' ? 'text-purple-400' : 'text-emerald-400'}">
+                                ${q.stat === 'spirituality' ? '🌀 Духовн.' : '⚡ Вынос.'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${!q.isDefault ? `<button onclick="deleteQuest(${q.id})" class="text-red-500 text-xs px-2 py-1 hover:text-red-400">✕</button>` : ''}
+                        <button onclick="completeQuest(${q.id})" ${isCompleted ? 'disabled' : ''} 
+                            class="px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${
+                                isCompleted 
+                                ? 'bg-slate-800 text-slate-600 border border-slate-800' 
+                                : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 active:scale-95'
+                            }">
+                            ${isCompleted ? 'Выполнен' : 'Закрыть'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Заметки
+        function renderNotes() {
+            const container = document.getElementById('notes-list');
+            container.innerHTML = '';
+
+            if (gameState.notes.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">У тебя пока нет заметок. Добавь первую!</p>`;
+                return;
+            }
+
+            gameState.notes.forEach(n => {
+                const card = document.createElement('div');
+                card.className = 'p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2 relative';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-[9px] text-slate-500 font-mono">${n.date}</span>
+                        <button onclick="deleteNote(${n.id})" class="text-slate-500 hover:text-red-500 text-[10px] transition-all">Удалить</button>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">${n.text}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Боссы
+        function renderBosses() {
+            const container = document.getElementById('bosses-list');
+            container.innerHTML = '';
+
+            gameState.bosses.forEach(b => {
+                const percent = Math.min((b.currentKzt / b.targetKzt) * 100, 100);
+                const card = document.createElement('div');
+                card.className = 'p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3 relative overflow-hidden';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded font-mono uppercase tracking-wider">Дедлайн: ${b.deadline}</span>
+                            <h4 class="text-sm font-bold text-slate-200 mt-1.5 greek-title">${b.name}</h4>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-500 block">Цель</span>
+                            <span class="text-sm font-bold text-amber-500 font-mono">${b.targetKzt.toLocaleString()} ₸</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400">${b.desc}</p>
+                    
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] font-mono">
+                            <span class="text-emerald-400">Накоплено: ${b.currentKzt.toLocaleString()} ₸</span>
+                            <span class="text-slate-400">${percent.toFixed(0)}%</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                            <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+
+                    <button onclick="openPayModal(${b.id}, '${b.name}')" 
+                        class="w-full py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all">
+                        Внести накопления (₸)
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Магазин
+        function renderRewards() {
+            const container = document.getElementById('rewards-list');
+            container.innerHTML = '';
+
+            gameState.rewards.forEach(r => {
+                const canBuy = gameState.gold >= r.cost;
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border flex items-center justify-between transition-all bg-slate-900 border-slate-800`;
+
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3 flex-1 pr-3">
+                        <div class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-lg shadow-inner">
+                            ${r.icon}
+                        </div>
+                        <div class="space-y-0.5">
+                            <h4 class="text-xs font-bold text-slate-200">${r.name}</h4>
+                            <p class="text-[9px] text-slate-400 line-clamp-1">${r.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="buyReward(${r.id}, ${r.cost})" ${!canBuy ? 'disabled' : ''} 
+                        class="px-3 py-2 rounded-lg font-bold text-[10px] font-mono transition-all flex flex-col items-center justify-center w-16 h-10 ${
+                            canBuy 
+                            ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 active:scale-95 shadow-lg' 
+                            : 'bg-slate-800 text-slate-500 border border-slate-800 cursor-not-allowed'
+                        }">
+                        <span class="text-[8px] font-sans">КУПИТЬ</span>
+                        <span class="text-[10px] font-bold mt-0.5">🪙 ${r.cost}</span>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Действие: Закрыть квест
+        function completeQuest(id) {
+            const q = gameState.quests.find(quest => quest.id === id);
+            if (q && !q.isCompletedToday) {
+                q.isCompletedToday = true;
+                gameState.gold += q.rewardGold;
+                gameState.xp += q.rewardXp;
+
+                if (q.stat === 'spirituality') {
+                    gameState.spirituality += 1;
+                } else if (q.stat === 'endurance') {
+                    gameState.endurance += 1;
+                }
+
+                // Повышение уровня
+                const xpNeeded = gameState.level * 100;
+                if (gameState.xp >= xpNeeded) {
+                    gameState.xp -= xpNeeded;
+                    gameState.level += 1;
+                    showAchievementNotification(`УРОВЕНЬ ПОВЫШЕН! Теперь ты ${gameState.level} LVL!`);
+                }
+
+                saveGameState();
+                updateUi();
+            }
+        }
+
+        // Купить награду
+        function buyReward(id, cost) {
+            if (gameState.gold >= cost) {
+                gameState.gold -= cost;
+                saveGameState();
+                updateUi();
+                showAchievementNotification("Разблокировано! Наслаждайся заслуженным отдыхом!");
+            }
+        }
+
+        // Создать заметку + авто-генерация квестов
+        function createNewNote() {
+            const textarea = document.getElementById('new-note-text');
+            const text = textarea.value.trim();
+
+            if (!text) return;
+
+            const now = new Date();
+            const dateStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
+
+            const newNote = {
+                id: Date.now(),
+                text: text,
+                date: dateStr
+            };
+
+            gameState.notes.unshift(newNote);
+
+            // АВТО-ГЕНЕРАЦИЯ КВЕСТОВ НА ОСНОВЕ ТЕКСТА ЗАМЕТКИ
+            const lowerText = text.toLowerCase();
+            let autoQuest = null;
+
+            if (lowerText.includes('клиент') || lowerText.includes('сайт') || lowerText.includes('разработ')) {
+                // Квест по веб-разработке
+                autoQuest = {
+                    id: Date.now() + 1,
+                    title: `Работа над сайтом: "${text.substring(0, 30)}..."`,
+                    rewardGold: 150,
+                    rewardXp: 100,
+                    stat: "endurance",
+                    isCompletedToday: false,
+                    isDefault: false
+                };
+            } else if (lowerText.includes('читать') || lowerText.includes('книг') || lowerText.includes('буддиз') || lowerText.includes('эллин') || lowerText.includes('изуч')) {
+                // Духовный квест
+                autoQuest = {
+                    id: Date.now() + 1,
+                    title: `Изучить/Почитать: "${text.substring(0, 30)}..."`,
+                    rewardGold: 30,
+                    rewardXp: 45,
+                    stat: "spirituality",
+                    isCompletedToday: false,
+                    isDefault: false
+                };
+            } else if (lowerText.includes('спорт') || lowerText.includes('трени') || lowerText.includes('бег') || lowerText.includes('велик') || lowerText.includes('скейт')) {
+                // Физический квест
+                autoQuest = {
+                    id: Date.now() + 1,
+                    title: `Тренировка: "${text.substring(0, 30)}..."`,
+                    rewardGold: 40,
+                    rewardXp: 50,
+                    stat: "endurance",
+                    isCompletedToday: false,
+                    isDefault: false
+                };
+            }
+
+            if (autoQuest) {
+                gameState.quests.unshift(autoQuest);
+                showAchievementNotification("Система сгенерировала новый квест на основе твоей заметки!");
+            }
+
+            textarea.value = '';
+            toggleModal('modal-add-note', false);
+            saveGameState();
+            updateUi();
+        }
+
+        // Удалить заметку
+        function deleteNote(id) {
+            gameState.notes = gameState.notes.filter(n => n.id !== id);
+            saveGameState();
+            updateUi();
+        }
+
+        // Удалить кастомный квест
+        function deleteQuest(id) {
+            gameState.quests = gameState.quests.filter(q => q.id !== id);
+            saveGameState();
+            updateUi();
+        }
+
+        // Создать квест вручную
+        function createNewQuest() {
+            const titleInput = document.getElementById('new-quest-title');
+            const title = titleInput.value.trim();
+            const stat = document.getElementById('new-quest-stat').value;
+            const gold = parseInt(document.getElementById('new-quest-gold').value) || 10;
+
+            if (!title) return;
+
+            const newQuest = {
+                id: Date.now(),
+                title: title,
+                rewardGold: gold,
+                rewardXp: Math.round(gold * 1.5),
+                stat: stat,
+                isCompletedToday: false,
+                isDefault: false
+            };
+
+            gameState.quests.unshift(newQuest);
+            titleInput.value = '';
+            toggleModal('modal-add-quest', false);
+            saveGameState();
+            updateUi();
+        }
+
+        // Пополнение накоплений боссу
+        let activeBossId = null;
+        function openPayModal(bossId, bossName) {
+            activeBossId = bossId;
+            document.getElementById('pay-boss-title').innerText = bossName;
+            document.getElementById('boss-pay-amount').value = '';
+            
+            document.getElementById('boss-pay-btn').onclick = function() {
+                const amount = parseInt(document.getElementById('boss-pay-amount').value) || 0;
+                if (amount > 0) {
+                    const boss = gameState.bosses.find(b => b.id === activeBossId);
+                    if (boss) {
+                        boss.currentKzt += amount;
+                        gameState.xp += Math.round(amount / 100);
+                        
+                        const xpNeeded = gameState.level * 100;
+                        if (gameState.xp >= xpNeeded) {
+                            gameState.xp -= xpNeeded;
+                            gameState.level += 1;
+                        }
+
+                        toggleModal('modal-boss-pay', false);
+                        saveGameState();
+                        updateUi();
+                        showAchievementNotification(`Копилка пополнена на ${amount} ₸!`);
+                    }
+                }
+            };
+
+            toggleModal('modal-boss-pay', true);
+        }
+
+        function toggleModal(modalId, isVisible) {
+            const modal = document.getElementById(modalId);
+            if (isVisible) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Дзен мудрость
+        const zenQuotes = [
+            { text: "«Всё, что имеет начало, имеет и конец. Прими это и обретёшь покой.»", author: "Будда" },
+            { text: "«Твоя сила — в твоем контроле над разумом, а не над внешними событиями. Осознай это, и обретешь силу.»", author: "Марк Аврелий (Стоицизм)" },
+            { text: "«Думаешь, ты один такой несчастный во всей Вселенной? Все страдают. Настоящее величие — встретить это с улыбкой.»", author: "Дзенская притча" },
+            { text: "«Глупо бояться того, чего нельзя избежать. Живи настоящим моментом.»", author: "Сенека (Стоицизм)" },
+            { text: "«Спокойствие ума — это лучшая броня от стрел судьбы.»", author: "Эпиктет (Стоицизм)" }
+        ];
+
+        function getNewQuote() {
+            const randomIndex = Math.floor(Math.random() * zenQuotes.length);
+            const quote = zenQuotes[randomIndex];
+            document.getElementById('quote-text').innerText = quote.text;
+            document.getElementById('quote-author').innerText = `— ${quote.author}`;
+        }
+
+        // Дыхательный тренажер
+        let breathingInterval = null;
+        let isBreathing = false;
+        let breathePhase = 0; // 0 - вдох, 1 - задержка, 2 - выдох, 3 - задержка
+        let breatheTimeLeft = 4;
+
+        function toggleBreathing() {
+            const btn = document.getElementById('breathe-btn');
+            const circle = document.getElementById('breathe-circle');
+            const status = document.getElementById('breathe-status');
+            const timer = document.getElementById('breathe-timer');
+
+            if (isBreathing) {
+                clearInterval(breathingInterval);
+                isBreathing = false;
+                btn.innerText = "Запустить дзен";
+                status.innerText = "Старт";
+                timer.innerText = "0с";
+                circle.className = "w-36 h-36 rounded-full bg-emerald-500/10 border-2 border-emerald-400 flex flex-col items-center justify-center transition-all duration-1000 relative";
+            } else {
+                isBreathing = true;
+                btn.innerText = "Остановить";
+                breathePhase = 0;
+                breatheTimeLeft = 4;
+                runBreathingCycle();
+                breathingInterval = setInterval(runBreathingCycle, 1000);
+            }
+        }
+
+        function runBreathingCycle() {
+            const circle = document.getElementById('breathe-circle');
+            const status = document.getElementById('breathe-status');
+            const timer = document.getElementById('breathe-timer');
+
+            timer.innerText = `${breatheTimeLeft}с`;
+
+            if (breathePhase === 0) { // ВДОХ
+                status.innerText = "Вдох";
+                circle.style.transform = "scale(1.25)";
+                circle.style.backgroundColor = "rgba(16, 185, 129, 0.35)";
+            } else if (breathePhase === 1) { // ЗАДЕРЖКА
+                status.innerText = "Задержка";
+            } else if (breathePhase === 2) { // ВЫДОХ
+                status.innerText = "Выдох";
+                circle.style.transform = "scale(1)";
+                circle.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+            } else if (breathePhase === 3) { // ЗАДЕРЖКА
+                status.innerText = "Задержка";
+            }
+
+            breatheTimeLeft--;
+
+            if (breatheTimeLeft < 0) {
+                breathePhase = (breathePhase + 1) % 4;
+                breatheTimeLeft = 4;
+            }
+        }
+
+        function showAchievementNotification(text) {
+            const toast = document.createElement('div');
+            toast.className = "fixed top-5 left-1/2 transform -translate-x-1/2 bg-amber-500 text-slate-950 font-bold px-4 py-3 rounded-xl shadow-2xl text-xs z-50 transition-all duration-300 translate-y-[-100px] opacity-0 text-center uppercase tracking-wide border border-amber-600";
+            toast.innerText = text;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        window.onload = function() {
+            loadGameState();
+            getNewQuote();
+        }
+    </script>
+</body>
+</html>
