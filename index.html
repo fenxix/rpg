@@ -821,10 +821,30 @@
             }, 3000);
         }
 
+        // Функция автоматического сброса дейликов
+function checkDailyReset() {
+    const lastResetDate = localStorage.getItem('last_reset_date');
+    const today = new Date().toDateString();
+
+    if (lastResetDate !== today) {
+        // Сбрасываем статус всех квестов
+        gameState.quests.forEach(q => {
+            q.isCompletedToday = false;
+        });
+        // Обновляем дату последнего сброса
+        localStorage.setItem('last_reset_date', today);
+        saveGameState();
+    }
+}
+        
+
         window.onload = function() {
-            loadGameState();
-            getNewQuote();
-        }
+    loadGameState();       // Сначала загружаем данные
+    checkDailyReset();     // Затем проверяем, не наступил ли новый день
+    updateUi();            // Обновляем интерфейс, чтобы сброс сразу отобразился
+    getNewQuote();
+}
+
     </script>
 </body>
 </html>
