@@ -35,6 +35,105 @@
         ::-webkit-scrollbar {
             display: none;
         }
+
+        /* Стили для новых фич (стрик, события, достижения) */
+.streak-badge {
+    background: rgba(255, 165, 0, 0.15);
+    border: 1px solid rgba(255, 165, 0, 0.4);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #ffaa00;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+/* Модальное окно для случайных событий */
+.event-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.event-content {
+    background: #1a1c29;
+    border: 2px solid #3b4261;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.event-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.event-btn {
+    background: #2e3440;
+    border: 1px solid #4c566a;
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.event-btn:hover {
+    background: #434c5e;
+    border-color: #88c0d0;
+}
+
+/* Сетка инвентаря артефактов */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.achievement-item {
+    background: #161822;
+    border: 1px solid #2a2e3d;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    opacity: 0.4;
+    transition: 0.3s;
+}
+
+.achievement-item.unlocked {
+    opacity: 1;
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.05);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.15);
+}
+
+.achievement-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.achievement-name {
+    font-size: 11px;
+    color: #ccc;
+}
+        
     </style>
 </head>
 <body class="text-slate-100 flex flex-col min-h-screen">
@@ -258,6 +357,25 @@
                     </button>
                 </div>
             </section>
+
+            <!-- Плашка Стрика (можно вставить в шапку профиля рядом с LVL) -->
+<div id="streak-container" class="streak-badge">
+    🔥 Стрик: <span id="streak-count">0</span> дн. без пропусков
+</div>
+
+<!-- Секция Инвентаря Артефактов (можно добавить на главную страницу) -->
+<section class="app-section">
+    <div class="section-header">
+        <h3>🎒 Инвентарь Артефактов</h3>
+        <p>Редкие достижения, открытые в ходе жизненного пути.</p>
+    </div>
+    <div class="achievements-grid" id="achievements-container">
+        <!-- Рендерится через JS -->
+    </div>
+</section>
+
+<!-- Контейнер для всплывающего случайного события -->
+<div id="random-event-root"></div>
 
         </main>
 
@@ -1314,6 +1432,138 @@
             getNewQuote();
             startShiftCountdown();
         }
+
+        // --- 1. СИСТЕМА СТРИКОВ ---
+function initStreak() {
+    let lastLogin = localStorage.getItem('last_login_date');
+    let streak = parseInt(localStorage.getItem('user_streak')) || 0;
+    let today = new Date().toDateString();
+
+    if (lastLogin !== today) {
+        let yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (lastLogin === yesterday.toDateString()) {
+            streak += 1; // Увеличиваем стрик, если заходил вчера
+        } else if (lastLogin && lastLogin !== yesterday.toDateString()) {
+            streak = 1; // Сброс, если пропустил день
+        } else {
+            streak = 1; // Самый первый вход
+        }
+        localStorage.setItem('last_login_date', today);
+        localStorage.setItem('user_streak', streak);
+    }
+    
+    document.getElementById('streak-count').innerText = streak;
+    checkAchievements(streak);
+}
+
+// --- 2. РАНДОМНЫЕ СОБЫТИЯ (ЭВЕНТЫ) ---
+const randomEvents = [
+    {
+        title: "⚡ Усталый путник",
+        text: "На смене в агентстве подкатила усталость. Как поступишь?",
+        opt1: { text: "Выпить крепкий кофе (+10 Выносливости)", action: () => addStat('endurance', 10) },
+        opt2: { text: "Потерпеть и получить бонус (+15 золота)", action: () => addGold(15) }
+    },
+    {
+        title: "🌀 Внезапный инсайт",
+        text: "В голову пришла крутая идея для дизайна или кода сайта.",
+        opt1: { text: "Записать в заметки (+15 Духовн)", action: () => addStat('spirituality', 15) },
+        opt2: { text: "Забить и отдохнуть (+10 золота)", action: () => addGold(10) }
+    }
+];
+
+function checkDailyEvent() {
+    let lastEventDate = localStorage.getItem('last_event_date');
+    let today = new Date().toDateString();
+
+    if (lastEventDate !== today) {
+        // Выбираем случайное событие
+        let event = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+        showEventModal(event);
+        localStorage.setItem('last_event_date', today);
+    }
+}
+
+function showEventModal(event) {
+    let root = document.getElementById('random-event-root');
+    root.innerHTML = `
+        <div class="event-modal">
+            <div class="event-content">
+                <h3>${event.title}</h3>
+                <p style="margin: 15px 0; color: #aaa; font-size: 14px;">${event.text}</p>
+                <div class="event-buttons">
+                    <button class="event-btn" id="ev-opt-1">${event.opt1.text}</button>
+                    <button class="event-btn" id="ev-opt-2">${event.opt2.text}</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('ev-opt-1').onclick = () => {
+        event.opt1.action();
+        root.innerHTML = '';
+    };
+    document.getElementById('ev-opt-2').onclick = () => {
+        event.opt2.action();
+        root.innerHTML = '';
+    };
+}
+
+// --- 3. ИНВЕНТАРЬ АРТЕФАКТОВ (ДОСТИЖЕНИЯ) ---
+const achievementsList = [
+    { id: 'streak_3', name: 'В ритме', icon: '🔥', desc: 'Стрик 3 дня', check: (streak) => streak >= 3 },
+    { id: 'streak_7', name: 'Железная воля', icon: '🛡️', desc: 'Стрик 7 дней', check: (streak) => streak >= 7 },
+    { id: 'first_quest', name: 'Старт дан', icon: '⚔️', desc: 'Выполни первый квест', check: () => true /* можно привязать к счетчику квестов */ }
+];
+
+function renderAchievements() {
+    let container = document.getElementById('achievements-container');
+    let unlockedList = JSON.parse(localStorage.getItem('unlocked_achievements')) || ['streak_3']; // Пример открытого
+
+    container.innerHTML = achievementsList.map(ach => {
+        let isUnlocked = unlockedList.includes(ach.id);
+        return `
+            <div class="achievement-item ${isUnlocked ? 'unlocked' : ''}">
+                <div class="achievement-icon">${ach.icon}</div>
+                <div class="achievement-name">${ach.name}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function checkAchievements(streak) {
+    let unlockedList = JSON.parse(localStorage.getItem('unlocked_achievements')) || [];
+    
+    achievementsList.forEach(ach => {
+        if (!unlockedList.includes(ach.id) && ach.check(streak)) {
+            unlockedList.push(ach.id);
+        }
+    });
+    
+    localStorage.setItem('unlocked_achievements', JSON.stringify(unlockedList));
+    renderAchievements();
+}
+
+// Вспомогательные заглушки (если у тебя уже есть свои функции добавления золота/статов, можно заменить ими)
+function addGold(amount) {
+    // Вызови свою функцию начисления золота, например: userGold += amount; saveState();
+    console.log(`Получено золота: ${amount}`);
+}
+
+function addStat(statName, amount) {
+    // Вызови свою функцию изменения статов (endurance / spirituality)
+    console.log(`Прокачан стат ${statName} на +${amount}`);
+}
+
+// Инициализация при загрузке приложения
+window.addEventListener('DOMContentLoaded', () => {
+    initStreak();
+    renderAchievements();
+    setTimeout(checkDailyEvent, 1000); // Показать случайное событие через 1 секунду после запуска
+});
+        
     </script>
 </body>
 </html>
