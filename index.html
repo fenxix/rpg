@@ -48,7 +48,7 @@
         <header class="p-4 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-full border-2 border-amber-500/50 flex items-center justify-center bg-slate-800 overflow-hidden gold-glow">
+                    <div onclick="switchTab('achievements')" title="Открыть достижения" class="w-12 h-12 rounded-full border-2 border-amber-500/50 flex items-center justify-center bg-slate-800 overflow-hidden gold-glow cursor-pointer">
                         <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
@@ -140,6 +140,29 @@
                 </div>
 
                 <div class="space-y-2.5" id="quests-list">
+                </div>
+
+            </section>
+
+            <section id="tab-achievements" class="space-y-4 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-200 greek-title tracking-wide flex items-center">
+                            <span class="mr-2">🏅</span> Серия и достижения
+                        </h3>
+                        <p class="text-xs text-slate-400">Отдельная вкладка для серии, стрика и достижений.</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-200 greek-title">Серия достижений</h4>
+                            <p class="text-[10px] text-slate-400">Следи за прогрессом и сохраняй рутину.</p>
+                        </div>
+                        <span id="streak-count" class="text-xs bg-emerald-500/10 text-emerald-300 px-2 py-1 rounded-full font-mono">Стрик 0</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2" id="achievements-list"></div>
                 </div>
             </section>
 
@@ -273,6 +296,10 @@
             <button onclick="switchTab('notes')" class="nav-btn flex flex-col items-center text-slate-400" id="btn-tab-notes">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 <span class="text-[9px] mt-1 font-semibold">Заметки</span>
+            </button>
+            <button onclick="switchTab('achievements')" class="nav-btn flex flex-col items-center text-slate-400" id="btn-tab-achievements">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l2.39 6.87h7.24l-5.86 4.26 2.24 6.96L12 15.75 6.99 20.09l2.24-6.96L3.37 8.87h7.24L12 2z"></path></svg>
+                <span class="text-[9px] mt-1 font-semibold">Достижения</span>
             </button>
             <button onclick="switchTab('bosses')" class="nav-btn flex flex-col items-center text-slate-400" id="btn-tab-bosses">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -444,6 +471,11 @@
             gold: 0,
             endurance: 10,
             spirituality: 10,
+            dailyStreak: 0,
+            lastQuestCompletedDate: "",
+            plans: [],
+            notes: [],
+            totalQuestsDone: 0,
             workShift: {
                 name: "Рабочая смена",
                 // store times in HH:MM format strings; endHour must be string per requirement
@@ -467,6 +499,31 @@
 
         let editMode = false;
 
+        const achievementsList = [
+            { id: 'streak_3', name: 'В ритме', icon: '🔥', desc: 'Стрик 3 дня', check: () => gameState.dailyStreak >= 3 },
+            {
+                id: 'seneca_fan',
+                name: 'Покоритель Сенеки',
+                icon: '📜',
+                desc: 'Прочитано много мудрости',
+                check: () => (gameState.notes ? gameState.notes.length : 0) >= 5
+            },
+            {
+                id: 'quest_master',
+                name: 'Властитель квестов',
+                icon: '🏆',
+                desc: 'Выполнено 10 квестов',
+                check: () => (gameState.totalQuestsDone || 0) >= 10
+            },
+            {
+                id: 'rich_hunter',
+                name: 'Охотник за богатством',
+                icon: '💰',
+                desc: 'Накоплено 1000 золота',
+                check: () => gameState.gold >= 1000
+            }
+        ];
+
         function loadGameState() {
             const savedState = localStorage.getItem('forfax_rpg_state');
             if (savedState) {
@@ -477,6 +534,12 @@
                 }
             }
             if (!gameState.plans) gameState.plans = [];
+            if (!gameState.notes) gameState.notes = [];
+            if (!gameState.rewards) gameState.rewards = [];
+            if (!gameState.bosses) gameState.bosses = [];
+            if (gameState.totalQuestsDone === undefined) gameState.totalQuestsDone = 0;
+            if (gameState.dailyStreak === undefined) gameState.dailyStreak = 0;
+            if (gameState.lastQuestCompletedDate === undefined) gameState.lastQuestCompletedDate = "";
             if (!gameState.workShift) {
                 gameState.workShift = {
                     name: "Рабочая смена",
@@ -582,7 +645,7 @@
         }
 
         function switchTab(tabName) {
-            const tabs = ['quests', 'notes', 'bosses', 'shop', 'zen'];
+            const tabs = ['quests', 'notes', 'achievements', 'bosses', 'shop', 'zen'];
             tabs.forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
                 document.getElementById(`btn-tab-${t}`).classList.remove('text-amber-500');
@@ -664,6 +727,7 @@
             renderNotes();
             renderBosses();
             renderRewards();
+            renderAchievements();
         }
 
         function renderQuests() {
@@ -842,6 +906,34 @@
                             ${gameState.gold >= r.cost ? 'Купить' : 'Мало золота'}
                         </button>
                     </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievements-list');
+            const streakEl = document.getElementById('streak-count');
+            if (streakEl) {
+                streakEl.innerText = `Стрик ${gameState.dailyStreak || 0}`;
+            }
+
+            if (!container) return;
+            container.innerHTML = '';
+
+            achievementsList.forEach(a => {
+                const unlocked = a.check();
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border ${unlocked ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-slate-800 bg-slate-950'}`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-xl">${a.icon}</span>
+                        <span class="text-[10px] uppercase tracking-wider ${unlocked ? 'text-emerald-300' : 'text-slate-500'}">
+                            ${unlocked ? 'Открыто' : 'Закрыто'}
+                        </span>
+                    </div>
+                    <h5 class="text-sm font-semibold ${unlocked ? 'text-emerald-300' : 'text-slate-200'} mt-3">${a.name}</h5>
+                    <p class="text-[10px] ${unlocked ? 'text-slate-300' : 'text-slate-400'} mt-1">${a.desc}</p>
                 `;
                 container.appendChild(card);
             });
