@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#1a1c29">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FORFAX RPG — Ассистент & Качай Жизнь</title>
+    <title>lifeRPG</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -338,7 +338,7 @@
         <div id="modal-add-note" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
                 <h4 class="font-bold text-md text-amber-500 greek-title">Добавить заметку</h4>
-                <p class="text-[10px] text-slate-400">Например: "Нашел клиента Мадлен" или "Изучаю буддийские притчи". Система сама предложит квест.</p>
+                <p class="text-[10px] text-slate-400">Например: "Нашел клиента" или "Изучаю буддийские притчи". Система сама предложит квест.</p>
                 <div class="space-y-3">
                     <textarea id="new-note-text" placeholder="Текст заметки..." rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200 resize-none"></textarea>
                 </div>
@@ -451,29 +451,17 @@
                 endHour: "19:00"
             },
             quests: [
-                { id: 1, title: "Встать без ментальных загонов", rewardGold: 5, rewardXp: 10, stat: "spirituality", isCompletedToday: false, isDefault: true },
-                { id: 2, title: "Медитация 10 минут / Чтение Сенеки", rewardGold: 10, rewardXp: 15, stat: "spirituality", isCompletedToday: false, isDefault: true },
-                { id: 3, title: "Отработать смену у Ромы (или учебу)", rewardGold: 100, rewardXp: 50, stat: "endurance", isCompletedToday: false, isDefault: true },
-                { id: 4, title: "Написать Даяше теплое сообщение просто так", rewardGold: 10, rewardXp: 20, stat: "endurance", isCompletedToday: false, isDefault: true }
-            ],
-            plans: [
-                { id: 1, title: "Подготовиться к смене", desc: "Собрать рюкзак, зарядить наушники, взять завтрак", date: "18.07.2026" },
-                { id: 2, title: "Отправить отчёт Роме", desc: "Отправить скрин рабочего прогресса до 15:00", date: "18.07.2026" }
-            ],
-            notes: [
-                { id: 1, text: "Начал изучать буддизм и философию стоицизма.", date: "18.07.2026" },
-                { id: 2, text: "Решил откладывать по 5к на подарки в Kaspi.", date: "18.07.2026" }
+                { id: 1, title: "Сделать зарядку или небольшую разминку в течение 10 минут", rewardGold: 5, rewardXp: 10, stat: "spirituality", isCompletedToday: false, isDefault: true },
+                { id: 2, title: "Записать три вещи, за которые ты благодарен сегодня", rewardGold: 10, rewardXp: 15, stat: "spirituality", isCompletedToday: false, isDefault: true },
+                { id: 3, title: "Пройти не менее 5 000 шагов", rewardGold: 100, rewardXp: 50, stat: "endurance", isCompletedToday: false, isDefault: true },
+                { id: 4, title: "Уделить 15 минут чтению книги", rewardGold: 10, rewardXp: 20, stat: "endurance", isCompletedToday: false, isDefault: true }
             ],
             bosses: [
-                { id: 1, name: "Полгода отношений с Даяной", deadline: "22 августа", targetKzt: 20000, currentKzt: 0, desc: "Собрать бюджет на незабываемое свидание и душевный подарок!" },
-                { id: 2, name: "День рождения мамы Даяны", deadline: "30 августа", targetKzt: 15000, currentKzt: 0, desc: "Найти классный комнатный цветок в горшке или подарочный набор чая." },
-                { id: 3, name: "День рождения моей мамы", deadline: "12 октября", targetKzt: 20000, currentKzt: 0, desc: "Заблаговременно скопить на крутой и душевный подарок маме." }
+                { id: 1, name: "Полгода отношений с Даяной", deadline: "22 августа", targetKzt: 20000, currentKzt: 0, desc: "Собрать бюджет на незабываемое свидание и душевный подарок!" }
             ],
             rewards: [
-                { id: 1, name: "Пропустить работу / Взять легальный отгул", cost: 1500, icon: "🚪", desc: "У тебя накопилось достаточно авторитета, чтобы устроить себе чил-дей." },
-                { id: 2, name: "Вечер тупняка в TikTok без чувства вины", cost: 200, icon: "📱", desc: "Купи себе 2 часа чистого ТТ. Мозг отдыхает, совесть не грызет." },
-                { id: 3, name: "Вкусный чит-мил (пицца / бургер / донер)", cost: 400, icon: "🍕", desc: "Разгрузка организма для восполнения энергии после жестких смен." },
-                { id: 4, name: "Купить пачку хорошего Шу Пуэра или Габы", cost: 350, icon: "🍵", desc: "Настоящий инструмент китайского дзена для снятия тревоги." }
+                { id: 1, name: "заняться своим делом, несмотря на планы", cost: 1500, icon: "🚪", desc: "У тебя накопилось достаточно авторитета, чтобы устроить себе чил-дей." },
+                { id: 2, name: "Вечер тупняка в TikTok без чувства вины", cost: 200, icon: "📱", desc: "Купи себе 2 часа чистого ТТ. Мозг отдыхает, совесть не грызет." }
             ]
         };
 
