@@ -134,9 +134,10 @@
                     <h3 class="font-bold text-lg text-slate-200 greek-title tracking-wide flex items-center">
                         <span class="mr-2">⚔️</span> Твои квесты
                     </h3>
-                    <button onclick="toggleModal('modal-add-quest', true)" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-500 border border-slate-700 px-2.5 py-1.5 rounded-lg flex items-center transition-all">
-                        + Квест руками
+                    <button id="btn-add-quest" onclick="toggleModal('modal-add-quest', true)" class="hidden text-xs bg-slate-800 hover:bg-slate-700 text-amber-500 border border-slate-700 px-2.5 py-1.5 rounded-lg items-center transition-all">
+    + Квест руками
                     </button>
+
                 </div>
 
                 <div class="space-y-2.5" id="quests-list">
@@ -736,7 +737,7 @@
 
             gameState.quests.forEach(q => {
                 const isCompleted = q.isCompletedToday;
-                const canDelete = editMode || !q.isDefault;
+                const canDelete = editMode;
                 const card = document.createElement('div');
                 card.className = `p-3 rounded-xl border flex items-center justify-between transition-all ${
                     isCompleted 
@@ -1415,19 +1416,19 @@ while (gameState.xp >= xpNeeded) {
         }
 
         function toggleEditMode() {
-            editMode = !editMode;
-            updateUi();
-            showAchievementNotification(editMode ? "Edit mode ON" : "Edit mode OFF");
-        }
+    editMode = !editMode;
+    
+    // Управление видимостью кнопки «Квест руками»
+    const addQuestBtn = document.getElementById('btn-add-quest');
+    if (addQuestBtn) {
+        addQuestBtn.classList.toggle('hidden', !editMode);
+        addQuestBtn.classList.toggle('flex', editMode);
+    }
 
-        window.onload = function() {
-            loadGameState();
-            checkDailyReset();
-            updateUi();
-            getNewQuote();
-            startShiftCountdown();
-            checkDailyStreak();
+    updateUi();
+    showAchievementNotification(editMode ? "Edit mode ON" : "Edit mode OFF");
         }
+        
     </script>
 </body>
 </html>
