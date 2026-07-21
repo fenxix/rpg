@@ -952,12 +952,15 @@
                     gameState.endurance += 1;
                 }
 
-                const xpNeeded = gameState.level * 100;
-                if (gameState.xp >= xpNeeded) {
-                    gameState.xp -= xpNeeded;
-                    gameState.level += 1;
-                    showAchievementNotification(`УРОВЕНЬ ПОВЫШЕН! Теперь ты ${gameState.level} LVL!`);
-                }
+                let xpNeeded = gameState.level * 100;
+while (gameState.xp >= xpNeeded) {
+    gameState.xp -= xpNeeded;
+    gameState.level += 1;
+    showAchievementNotification(`УРОВЕНЬ ПОВЫШЕН! Теперь ты ${gameState.level} LVL!`);
+    xpNeeded = gameState.level * 100;
+}
+                
+                
 
                 saveGameState();
                 updateUi();
