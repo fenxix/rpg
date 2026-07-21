@@ -1375,6 +1375,32 @@ while (gameState.xp >= xpNeeded) {
             }, 3000);
         }
 
+        function checkDailyStreak() {
+    const today = new Date().toDateString();
+    
+    if (!gameState.dailyStreak) {
+        gameState.dailyStreak = 1;
+        gameState.lastLoginDate = today;
+    } else {
+        const lastLogin = new Date(gameState.lastLoginDate || today);
+        const currentDate = new Date(today);
+        
+        const diffTime = currentDate - lastLogin;
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+            gameState.dailyStreak += 1;
+            gameState.lastLoginDate = today;
+        } else if (diffDays > 1) {
+            gameState.dailyStreak = 1;
+            gameState.lastLoginDate = today;
+        }
+    }
+    
+    if (typeof saveGameState === 'function') saveGameState();
+        }
+        
+
         function checkDailyReset() {
             const lastResetDate = localStorage.getItem('last_reset_date');
             const today = new Date().toDateString();
@@ -1400,6 +1426,7 @@ while (gameState.xp >= xpNeeded) {
             updateUi();
             getNewQuote();
             startShiftCountdown();
+            checkDailyStreak();
         }
     </script>
 </body>
