@@ -461,7 +461,273 @@
             </div>
         </div>
 
+        <div id="modal-auth" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+                <h4 class="font-bold text-md text-amber-500 greek-title">Вход и регистрация</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="auth-tab-login" onclick="setAuthTab('login')" class="text-xs uppercase tracking-wider py-2 rounded-lg bg-slate-800 text-slate-400">Вход</button>
+                    <button id="auth-tab-register" onclick="setAuthTab('register')" class="text-xs uppercase tracking-wider py-2 rounded-lg bg-amber-500/20 text-amber-300">Регистрация</button>
+                </div>
+                <div id="auth-error" class="text-[10px] text-red-400 min-h-[1rem]"></div>
+                <div id="auth-login-form" class="space-y-3 hidden">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Ник</label>
+                        <input id="auth-login-username" type="text" placeholder="Введите ник" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Пароль</label>
+                        <input id="auth-login-password" type="password" placeholder="Введите пароль" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                    </div>
+                    <div class="flex space-x-3 pt-2">
+                        <button onclick="handleAuthLogin()" class="flex-1 py-2 rounded-lg bg-amber-500 text-xs text-slate-950 font-bold">Войти</button>
+                    </div>
+                </div>
+                <div id="auth-register-form" class="space-y-3">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Ник</label>
+                        <input id="auth-register-username" type="text" placeholder="Придумай ник" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Пароль</label>
+                        <input id="auth-register-password" type="password" placeholder="Придумай пароль" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 text-slate-200">
+                    </div>
+                    <div class="flex space-x-3 pt-2">
+                        <button onclick="handleAuthRegister()" class="flex-1 py-2 rounded-lg bg-amber-500 text-xs text-slate-950 font-bold">Зарегистрироваться</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-onboarding" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 space-y-4">
+                <h4 class="font-bold text-md text-amber-500 greek-title">Начальный путь</h4>
+                <p class="text-[10px] text-slate-400">Выбери направления, которые хочешь улучшить. Мы подстроим квесты под твои цели.</p>
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <button data-category="Работа" onclick="toggleCategory('Работа')" class="category-pill text-xs rounded-2xl px-3 py-2 bg-slate-800 text-slate-400">Работа</button>
+                    <button data-category="Спорт" onclick="toggleCategory('Спорт')" class="category-pill text-xs rounded-2xl px-3 py-2 bg-slate-800 text-slate-400">Спорт</button>
+                    <button data-category="Учёба" onclick="toggleCategory('Учёба')" class="category-pill text-xs rounded-2xl px-3 py-2 bg-slate-800 text-slate-400">Учёба</button>
+                    <button data-category="Тревожность" onclick="toggleCategory('Тревожность')" class="category-pill text-xs rounded-2xl px-3 py-2 bg-slate-800 text-slate-400">Тревожность</button>
+                    <button data-category="Финансы" onclick="toggleCategory('Финансы')" class="category-pill text-xs rounded-2xl px-3 py-2 bg-slate-800 text-slate-400 col-span-2">Финансы</button>
+                </div>
+                <div id="auth-onboarding-error" class="text-[10px] text-red-400 min-h-[1rem]"></div>
+                <div class="flex space-x-3 pt-2">
+                    <button onclick="startJourney()" class="flex-1 py-2 rounded-lg bg-amber-500 text-xs text-slate-950 font-bold">Начать путь</button>
+                </div>
+            </div>
+        </div>
+
     </div>
+
+    <script>
+        function setAuthTab(tab) {
+            const loginForm = document.getElementById('auth-login-form');
+            const registerForm = document.getElementById('auth-register-form');
+            const loginBtn = document.getElementById('auth-tab-login');
+            const registerBtn = document.getElementById('auth-tab-register');
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                loginBtn.classList.add('bg-amber-500/20', 'text-amber-300');
+                loginBtn.classList.remove('bg-slate-800', 'text-slate-400');
+                registerBtn.classList.add('bg-slate-800', 'text-slate-400');
+                registerBtn.classList.remove('bg-amber-500/20', 'text-amber-300');
+            } else {
+                registerForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                registerBtn.classList.add('bg-amber-500/20', 'text-amber-300');
+                registerBtn.classList.remove('bg-slate-800', 'text-slate-400');
+                loginBtn.classList.add('bg-slate-800', 'text-slate-400');
+                loginBtn.classList.remove('bg-amber-500/20', 'text-amber-300');
+            }
+            document.getElementById('auth-error').innerText = '';
+        }
+
+        function handleAuthRegister() {
+            const username = document.getElementById('auth-register-username').value.trim();
+            const password = document.getElementById('auth-register-password').value.trim();
+            const errorEl = document.getElementById('auth-error');
+            if (!username || !password) {
+                errorEl.innerText = 'Заполни ник и пароль';
+                return;
+            }
+            if (!gameState.auth) gameState.auth = { isLoggedIn: false, currentUser: '', users: [], categories: [], categoriesApplied: false };
+            if (!Array.isArray(gameState.auth.users)) gameState.auth.users = [];
+            if (gameState.auth.users.some(u => u.username === username)) {
+                errorEl.innerText = 'Такой ник уже существует';
+                return;
+            }
+            gameState.auth.users.push({ username, password, categories: [] });
+            gameState.auth.currentUser = username;
+            gameState.auth.username = username;
+            gameState.auth.isLoggedIn = true;
+            gameState.auth.categories = [];
+            gameState.auth.categoriesApplied = false;
+            gameState.nickname = username;
+            saveGameState();
+            updateUi();
+            toggleModal('modal-auth', false);
+            document.body.classList.remove('overflow-hidden');
+            openOnboarding();
+        }
+
+        function handleAuthLogin() {
+            const username = document.getElementById('auth-login-username').value.trim();
+            const password = document.getElementById('auth-login-password').value.trim();
+            const errorEl = document.getElementById('auth-error');
+            if (!username || !password) {
+                errorEl.innerText = 'Заполни поля для входа';
+                return;
+            }
+            if (!gameState.auth || !Array.isArray(gameState.auth.users)) {
+                errorEl.innerText = 'Нет зарегистрированных пользователей';
+                return;
+            }
+            const user = gameState.auth.users.find(u => u.username === username && u.password === password);
+            if (!user) {
+                errorEl.innerText = 'Неверный ник или пароль';
+                return;
+            }
+            gameState.auth.currentUser = username;
+            gameState.auth.username = username;
+            gameState.auth.isLoggedIn = true;
+            gameState.auth.categories = Array.isArray(user.categories) ? [...user.categories] : [];
+            gameState.nickname = username;
+            saveGameState();
+            updateUi();
+            toggleModal('modal-auth', false);
+            document.body.classList.remove('overflow-hidden');
+            if (!gameState.auth.categories.length || !gameState.auth.categoriesApplied) {
+                openOnboarding();
+            } else {
+                customizeQuestsForCategories(gameState.auth.categories);
+                if (!gameState.auth.categoriesApplied) {
+                    gameState.auth.categoriesApplied = true;
+                    saveGameState();
+                    updateUi();
+                }
+            }
+        }
+
+        function openOnboarding() {
+            if (!gameState.auth) gameState.auth = { isLoggedIn: false, currentUser: '', users: [], categories: [], categoriesApplied: false };
+            if (!Array.isArray(gameState.auth.categories)) gameState.auth.categories = [];
+            setAuthTab('register');
+            toggleModal('modal-onboarding', true);
+            document.body.classList.add('overflow-hidden');
+            updateCategoryButtons();
+            document.getElementById('auth-onboarding-error').innerText = '';
+        }
+
+        function toggleCategory(category) {
+            if (!gameState.auth) gameState.auth = { isLoggedIn: false, currentUser: '', users: [], categories: [], categoriesApplied: false };
+            if (!Array.isArray(gameState.auth.categories)) gameState.auth.categories = [];
+            const index = gameState.auth.categories.indexOf(category);
+            if (index === -1) {
+                gameState.auth.categories.push(category);
+            } else {
+                gameState.auth.categories.splice(index, 1);
+            }
+            updateCategoryButtons();
+        }
+
+        function updateCategoryButtons() {
+            document.querySelectorAll('[data-category]').forEach(btn => {
+                const category = btn.dataset.category;
+                const selected = gameState.auth && Array.isArray(gameState.auth.categories) && gameState.auth.categories.includes(category);
+                btn.classList.toggle('bg-amber-500/20', selected);
+                btn.classList.toggle('text-amber-300', selected);
+                btn.classList.toggle('bg-slate-800', !selected);
+                btn.classList.toggle('text-slate-400', !selected);
+            });
+        }
+
+        function startJourney() {
+            const selected = gameState.auth && Array.isArray(gameState.auth.categories) ? gameState.auth.categories : [];
+            const errorEl = document.getElementById('auth-onboarding-error');
+            if (!selected.length) {
+                errorEl.innerText = 'Выбери хотя бы одну категорию';
+                return;
+            }
+            const currentUser = gameState.auth.currentUser;
+            if (currentUser && Array.isArray(gameState.auth.users)) {
+                const user = gameState.auth.users.find(u => u.username === currentUser);
+                if (user) user.categories = [...selected];
+            }
+            gameState.auth.categoriesApplied = false;
+            customizeQuestsForCategories(selected);
+            gameState.auth.categoriesApplied = true;
+            saveGameState();
+            updateUi();
+            toggleModal('modal-onboarding', false);
+            document.body.classList.remove('overflow-hidden');
+            showAchievementNotification('Начало пути! Квесты адаптированы под твои цели.');
+        }
+
+        function ensureAuthState() {
+            // ensure auth structure
+            if (!gameState.auth) {
+                gameState.auth = { isLoggedIn: false, currentUser: '', users: [], categories: [], categoriesApplied: false };
+            }
+            if (!Array.isArray(gameState.auth.users)) gameState.auth.users = [];
+            if (!Array.isArray(gameState.auth.categories)) gameState.auth.categories = [];
+            if (gameState.auth.categoriesApplied === undefined) gameState.auth.categoriesApplied = false;
+
+            // If already logged in, restore nickname and apply categories if needed
+            if (gameState.auth.isLoggedIn) {
+                if (!gameState.auth.currentUser && gameState.auth.users.length) {
+                    gameState.auth.currentUser = gameState.auth.users[0].username || '';
+                }
+                if (gameState.auth.currentUser) {
+                    gameState.auth.username = gameState.auth.currentUser;
+                    gameState.nickname = gameState.auth.currentUser;
+                }
+                if (gameState.auth.categories.length && !gameState.auth.categoriesApplied) {
+                    customizeQuestsForCategories(gameState.auth.categories);
+                    gameState.auth.categoriesApplied = true;
+                    saveGameState();
+                    updateUi();
+                }
+                return;
+            }
+
+            // No logged user found. Create a guest profile so user can start immediately.
+            if (!gameState.auth.users.length) {
+                const guestName = 'Герой';
+                gameState.auth.users.push({ username: guestName, password: '', categories: [] });
+                gameState.auth.currentUser = guestName;
+            } else if (!gameState.auth.currentUser) {
+                gameState.auth.currentUser = gameState.auth.users[0].username || '';
+            }
+            gameState.auth.username = gameState.auth.currentUser;
+            gameState.auth.isLoggedIn = true;
+            gameState.nickname = gameState.auth.currentUser || 'Герой';
+            saveGameState();
+            updateUi();
+        }
+
+        function customizeQuestsForCategories(categories) {
+            if (!Array.isArray(categories) || !categories.length) return;
+            const existing = gameState.quests.map(q => q.title);
+            let nextId = Date.now();
+            if (categories.includes('Работа') && !existing.some(title => title.includes('рабочие задачи') || title.includes('рабочие навыки'))) {
+                gameState.quests.unshift({ id: nextId++, title: 'Составить план рабочих задач на день', rewardGold: 70, rewardXp: 45, stat: 'endurance', isCompletedToday: false, isDefault: false });
+            }
+            if (categories.includes('Спорт') && !existing.some(title => title.includes('спорт') || title.includes('зарядка'))) {
+                gameState.quests.unshift({ id: nextId++, title: 'Сделать 15 минут спортивной разминки', rewardGold: 60, rewardXp: 50, stat: 'endurance', isCompletedToday: false, isDefault: false });
+            }
+            if (categories.includes('Учёба') && !existing.some(title => title.includes('Выучить новую тему') || title.includes('учеб'))) {
+                gameState.quests.unshift({ id: nextId++, title: 'Изучить новую тему или навыки 20 минут', rewardGold: 55, rewardXp: 50, stat: 'spirituality', isCompletedToday: false, isDefault: false });
+            }
+            if (categories.includes('Тревожность') && !existing.some(title => title.includes('медитацию') || title.includes('тревожность'))) {
+                gameState.quests.unshift({ id: nextId++, title: 'Практика дыхания или медитации 10 минут', rewardGold: 40, rewardXp: 45, stat: 'spirituality', isCompletedToday: false, isDefault: false });
+            }
+            if (categories.includes('Финансы') && !existing.some(title => title.includes('бюджет') || title.includes('финансы'))) {
+                gameState.quests.unshift({ id: nextId++, title: 'Проверить бюджет и записать финансовую цель', rewardGold: 65, rewardXp: 40, stat: 'endurance', isCompletedToday: false, isDefault: false });
+            }
+        }
+
+        window.addEventListener('load', ensureAuthState);
+    </script>
 
     <script>
         let gameState = {
