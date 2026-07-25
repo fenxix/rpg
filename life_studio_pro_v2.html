@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Life Studio Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f0f11;
+            color: #ededed;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .app-card {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            transition: all 0.2s ease;
+        }
+        .app-card:hover { border-color: #3f3f46; }
+        .app-btn {
+            background-color: #27272a;
+            border: 1px solid #3f3f46;
+            color: #fafafa;
+            transition: all 0.15s ease;
+        }
+        .app-btn:hover { background-color: #3f3f46; }
+        .app-btn:active { transform: scale(0.98); }
+        .app-btn-primary {
+            background-color: #f97316;
+            border: 1px solid #fb923c;
+            color: #fff;
+        }
+        .app-btn-primary:hover { background-color: #ea580c; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade { animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0f0f11; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen selection:bg-orange-500 selection:text-white">
+
+    <div class="w-full max-w-md mx-auto flex flex-col flex-grow bg-[#0f0f11] border-x border-[#27272a] shadow-xl relative pb-20 overflow-hidden">
+        
+        <!-- Верхняя шапка -->
+        <header class="p-4 bg-[#0f0f11]/90 backdrop-blur-md border-b border-[#27272a] sticky top-0 z-40">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('profile')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-zinc-800 to-zinc-900 border border-zinc-700 flex items-center justify-center text-orange-400 font-bold text-sm">
+                        <span id="player-lvl-badge">1</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <h2 id="player-name" class="font-semibold text-xs tracking-wide text-zinc-100">СЕНЯ</h2>
+                            <button onclick="openNicknameModal()" class="text-[10px] text-zinc-500 hover:text-orange-400"><i class="fa-solid fa-pen"></i></button>
+                        </div>
+                        <p class="text-[10px] text-zinc-400" id="player-title">Искатель</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <div class="bg-[#18181b] border border-[#27272a] px-3 py-1 rounded-full flex items-center gap-1.5 text-xs">
+                        <span class="font-semibold text-orange-400" id="player-gold">0</span>
+                        <span class="text-zinc-500">🪙</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Рабочая смена -->
+            <div class="mt-3 bg-[#18181b] border border-[#27272a] rounded-xl p-2.5 flex items-center justify-between text-xs">
+                <span class="text-zinc-400 flex items-center gap-1.5">
+                    <i class="fa-regular fa-clock text-orange-400"></i> <span id="shift-name-label">Рабочая смена</span> до <span id="shift-time-label" class="text-zinc-200 font-medium">18:00</span>
+                </span>
+                <span id="shift-countdown-text" class="font-mono font-medium text-orange-400">--:--</span>
+            </div>
+
+            <!-- XP Прогресс -->
+            <div class="mt-3 space-y-1">
+                <div class="flex justify-between text-[10px] text-zinc-500">
+                    <span>Уровень опыта</span>
+                    <span id="player-xp-text">0 / 100 XP</span>
+                </div>
+                <div class="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[#27272a]">
+                    <div class="bg-orange-500 h-full transition-all duration-300 rounded-full" id="player-xp-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="flex-grow p-4 overflow-y-auto space-y-4">
+            
+            <!-- 1. Квесты -->
+            <section id="tab-quests" class="space-y-3 animate-fade">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-semibold text-sm text-zinc-100">Задачи дня</h3>
+                        <p class="text-[11px] text-zinc-500">Серия: <span id="stat-streak" class="text-orange-400 font-medium">0</span> дн.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleEditMode()" id="btn-edit-mode" class="app-btn px-2.5 py-1 rounded-lg text-xs text-zinc-400">Правка</button>
+                        <button onclick="toggleModal('modal-add-quest', true)" class="app-btn app-btn-primary px-3 py-1 rounded-lg text-xs font-medium">+ Квест</button>
+                    </div>
+                </div>
+                <div class="space-y-2.5" id="quests-list"></div>
+            </section>
+
+            <!-- 2. Мир (Карта и экспедиции) -->
+            <section id="tab-world" class="space-y-3 hidden animate-fade">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-semibold text-sm text-zinc-100">Карта Мира</h3>
+                    <span class="text-xs text-orange-400 font-mono">⚡ <span id="world-energy-text">100/100</span></span>
+                </div>
+                <div class="grid grid-cols-1 gap-2.5" id="world-regions-list"></div>
+            </section>
+
+            <!-- 3. Профиль -->
+            <section id="tab-profile" class="space-y-3 hidden animate-fade">
+                <div class="app-card rounded-2xl p-4 space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-orange-400 font-bold text-lg">
+                            <span id="profile-lvl">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-xs text-zinc-100" id="profile-name">СЕНЯ</h3>
+                            <p class="text-[10px] text-zinc-500" id="profile-title-text">Искатель приключений</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#27272a] text-xs">
+                        <div class="bg-[#0f0f11] p-2.5 rounded-xl border border-[#27272a]">
+                            <span class="text-zinc-500 block text-[10px]">Выносливость</span>
+                            <span class="text-emerald-400 font-semibold" id="profile-endurance">10</span>
+                        </div>
+                        <div class="bg-[#0f0f11] p-2.5 rounded-xl border border-[#27272a]">
+                            <span class="text-zinc-500 block text-[10px]">Духовность</span>
+                            <span class="text-purple-400 font-semibold" id="profile-spirituality">10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-card rounded-2xl p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-semibold text-xs text-zinc-300">Инвентарь</h4>
+                        <span class="text-[10px] text-zinc-500">Нажмите для использования</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2" id="inventory-list"></div>
+                </div>
+
+                <div class="app-card rounded-2xl p-4 space-y-3">
+                    <h4 class="font-semibold text-xs text-zinc-300">Статистика</h4>
+                    <div class="grid grid-cols-2 gap-2 text-xs" id="profile-stats-grid"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Боковое меню -->
+        <div id="drawer-menu" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-end hidden">
+            <div class="bg-[#121214] border-l border-[#27272a] w-72 h-full p-4 flex flex-col justify-between overflow-y-auto animate-fade">
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center pb-3 border-b border-[#27272a]">
+                        <h4 class="font-semibold text-xs text-zinc-200 tracking-wide uppercase">Меню</h4>
+                        <button onclick="toggleDrawer(false)" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="space-y-1 text-xs">
+                        <button onclick="openMenuSection('settings')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-gear text-orange-400 w-4"></i> Настройки</button>
+                        <button onclick="openMenuSection('shop')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-store text-emerald-400 w-4"></i> Магазин</button>
+                        <button onclick="openMenuSection('notes')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-note-sticky text-amber-300 w-4"></i> Заметки</button>
+                        <button onclick="openMenuSection('plans')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-list-check text-emerald-300 w-4"></i> Планы</button>
+                        <button onclick="openMenuSection('bosses')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-dragon text-rose-400 w-4"></i> Боссы</button>
+                        <button onclick="openMenuSection('skills')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-tree text-purple-400 w-4"></i> Навыки</button>
+                        <button onclick="openMenuSection('achievements')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-trophy text-amber-500 w-4"></i> Достижения</button>
+                        <button onclick="openMenuSection('zen')" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#18181b] text-zinc-300 flex items-center gap-2.5"><i class="fa-solid fa-spa text-teal-400 w-4"></i> Дзен</button>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-[#27272a] space-y-1.5 text-xs">
+                    <button onclick="exportData()" class="w-full py-2 bg-[#18181b] hover:bg-[#27272a] text-zinc-400 rounded-xl font-medium">Экспорт</button>
+                    <button onclick="importDataPrompt()" class="w-full py-2 bg-[#18181b] hover:bg-[#27272a] text-zinc-400 rounded-xl font-medium">Импорт</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модалка разделов меню -->
+        <div id="section-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="app-card rounded-2xl w-full max-w-md max-h-[85vh] p-4 flex flex-col justify-between overflow-y-auto animate-fade">
+                <div>
+                    <div class="flex justify-between items-center mb-3 pb-2 border-b border-[#27272a]">
+                        <h4 id="section-modal-title" class="font-semibold text-xs text-zinc-200">Раздел</h4>
+                        <button onclick="closeSectionModal()" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div id="section-modal-content" class="space-y-2.5 text-xs"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Нижняя навигация (Без заметок и планов) -->
+        <nav class="absolute bottom-0 left-0 right-0 h-16 bg-[#0f0f11]/90 backdrop-blur-md border-t border-[#27272a] flex items-center justify-around z-40 px-2 text-xs">
+            <button onclick="switchTab('quests')" class="nav-btn flex flex-col items-center text-orange-500" id="btn-tab-quests">
+                <i class="fa-solid fa-scroll text-sm"></i><span class="text-[10px] mt-1 font-medium">Квесты</span>
+            </button>
+            <button onclick="switchTab('world')" class="nav-btn flex flex-col items-center text-zinc-500 hover:text-zinc-300" id="btn-tab-world">
+                <i class="fa-solid fa-map text-sm"></i><span class="text-[10px] mt-1 font-medium">Мир</span>
+            </button>
+            <button onclick="switchTab('profile')" class="nav-btn flex flex-col items-center text-zinc-500 hover:text-zinc-300" id="btn-tab-profile">
+                <i class="fa-solid fa-user-shield text-sm"></i><span class="text-[10px] mt-1 font-medium">Профиль</span>
+            </button>
+            <button onclick="toggleDrawer(true)" class="nav-btn flex flex-col items-center text-zinc-500 hover:text-zinc-300" id="btn-tab-menu">
+                <i class="fa-solid fa-bars text-sm"></i><span class="text-[10px] mt-1 font-medium">Меню</span>
+            </button>
+        </nav>
+
+        <!-- Модалки создания -->
+        <div id="modal-add-quest" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="app-card rounded-2xl w-full max-w-sm p-4 space-y-3 text-xs animate-fade">
+                <h4 class="font-semibold text-zinc-200">Новый Квест</h4>
+                <input id="new-quest-title" type="text" placeholder="Название..." class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none focus:border-orange-500">
+                <select id="new-quest-stat" class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none">
+                    <option value="endurance">Выносливость</option>
+                    <option value="spirituality">Духовность</option>
+                </select>
+                <input id="new-quest-gold" type="number" value="15" class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none">
+                <div class="flex gap-2 pt-1">
+                    <button onclick="toggleModal('modal-add-quest', false)" class="app-btn flex-1 py-2 rounded-xl text-zinc-400">Отмена</button>
+                    <button onclick="createNewQuest()" class="app-btn app-btn-primary flex-1 py-2 rounded-xl font-medium">Создать</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-edit-nickname" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="app-card rounded-2xl w-full max-w-sm p-4 space-y-3 text-xs animate-fade">
+                <h4 class="font-semibold text-zinc-200">Изменить никнейм</h4>
+                <input id="nickname-input" type="text" class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none">
+                <div class="flex gap-2 pt-1">
+                    <button onclick="toggleModal('modal-edit-nickname', false)" class="app-btn flex-1 py-2 rounded-xl text-zinc-400">Отмена</button>
+                    <button onclick="saveNickname()" class="app-btn app-btn-primary flex-1 py-2 rounded-xl font-medium">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-add-plan" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="app-card rounded-2xl w-full max-w-sm p-4 space-y-3 text-xs animate-fade">
+                <h4 class="font-semibold text-zinc-200">Новый План</h4>
+                <input id="new-plan-title" type="text" placeholder="Название цели..." class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none">
+                <input id="new-plan-desc" type="text" placeholder="Описание..." class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none">
+                <input id="new-plan-deadline" type="text" placeholder="Дедлайн (например, 30 августа)" class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none">
+                <div class="flex gap-2 pt-1">
+                    <button onclick="toggleModal('modal-add-plan', false)" class="app-btn flex-1 py-2 rounded-xl text-zinc-400">Отмена</button>
+                    <button onclick="createNewPlan()" class="app-btn app-btn-primary flex-1 py-2 rounded-xl font-medium">Добавить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-add-note" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="app-card rounded-2xl w-full max-w-sm p-4 space-y-3 text-xs animate-fade">
+                <h4 class="font-semibold text-zinc-200">Новая Заметка</h4>
+                <input id="new-note-title" type="text" placeholder="Заголовок..." class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none">
+                <textarea id="new-note-text" placeholder="Текст заметки..." rows="3" class="w-full bg-[#0f0f11] border border-[#27272a] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none resize-none"></textarea>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="toggleModal('modal-add-note', false)" class="app-btn flex-1 py-2 rounded-xl text-zinc-400">Отмена</button>
+                    <button onclick="createNewNote()" class="app-btn app-btn-primary flex-1 py-2 rounded-xl font-medium">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Игровой движок -->
+    <script>
+        let gameState = {
+            nickname: "СЕНЯ",
+            title: "Искатель приключений",
+            level: 1,
+            xp: 0,
+            gold: 150,
+            endurance: 10,
+            spirituality: 10,
+            hp: 100,
+            maxHp: 100,
+            energy: 100,
+            maxEnergy: 100,
+            dailyStreak: 3,
+            skillPoints: 1,
+            lastLoginDate: "",
+            totalQuestsDone: 12,
+            totalGoldEarned: 350,
+            totalXpEarned: 1000,
+            bossesDefeated: 1,
+            missedDays: 0,
+            shiftName: "Рабочая смена",
+            shiftEndTime: "18:00",
+            shiftColor: "orange",
+            plans: [
+                { id: 1, title: "Запустить проект", desc: "Сделать код", deadline: "30 августа", progress: 50, completed: false, date: "24.07.2026" }
+            ],
+            notes: [
+                { id: 1, title: "Стоицизм", text: "Дисциплина решает всё.", pinned: true, date: "24.07.2026" }
+            ],
+            inventory: [
+                { id: 1, name: "Эликсир энергии", rarity: "Редкий", desc: "Восстанавливает 50 энергии", effect: { type: "energy", val: 50 }, icon: "fa-flask" },
+                { id: 2, name: "Ржавый меч", rarity: "Обычный", desc: "+5 к атаке", effect: null, icon: "fa-sword" }
+            ],
+            skills: { strength: 1, mind: 1, discipline: 0 },
+            regions: [
+                { id: 'home', name: "Дом", desc: "Безопасное место", progress: 100, unlocked: true, exploring: false, finishTime: null, icon: "fa-house" },
+                { id: 'village', name: "Деревня", desc: "Торговый центр", progress: 60, unlocked: true, exploring: false, finishTime: null, icon: "fa-store" },
+                { id: 'forest', name: "Лес", desc: "Дикие тропы с событиями", progress: 25, unlocked: true, exploring: false, finishTime: null, icon: "fa-tree" }
+            ],
+            bosses: [
+                { id: 1, name: "Тень Лени", type: "hp", hp: 300, maxHp: 300, level: 1, desc: "Демон прокрастинации", reward: "Амулет" },
+                { id: 2, name: "Дракон Бюджета", type: "financial", targetKzt: 50000, currentKzt: 15000, level: 2, desc: "Накопительная цель" }
+            ],
+            quests: [
+                { id: 1, title: "Утренняя разминка 10 мин", rewardGold: 10, rewardXp: 20, stat: "endurance", type: "daily", isCompletedToday: false },
+                { id: 2, title: "Записать три благодарности", rewardGold: 15, rewardXp: 25, stat: "spirituality", type: "daily", isCompletedToday: false }
+            ],
+            rewards: [
+                { id: 1, name: "Элитный кофе", category: "Отдых", cost: 40, icon: "☕", desc: "Бодрящий напиток" },
+                { id: 2, name: "Час игр", category: "Развлечения", cost: 100, icon: "🎮", desc: "Заслуженный отдых" }
+            ]
+        };
+
+        let editMode = false;
+        let noteSearchQuery = "";
+        let shopCategoryFilter = "all";
+
+        const travelEvents = [
+            { title: "Странствующий торговец", desc: "Он предлагает купить редкий артефакт за 50 золота.", action: () => { if(gameState.gold >= 50) { gameState.gold -= 50; gameState.inventory.push({id: Date.now(), name: "Амулет удачи", rarity: "Эпический", desc: "+10% золота", effect: null, icon: "fa-ring"}); showNotification("Вы купили амулет!"); } else { showNotification("Не хватает золота торговцу."); } } },
+            { title: "Заброшенный сундук", desc: "Вы нашли старый сундук на тропе.", action: () => { gameState.gold += 30; showNotification("В сундуке оказалось 30 золота!"); } },
+            { title: "Нападение разбойников", desc: "Пришлось отбиваться, вы потеряли 10 энергии.", action: () => { gameState.energy = Math.max(0, gameState.energy - 10); showNotification("Потеряно 10 энергии."); } },
+            { title: "Тихая поляна", desc: "Ничего интересного не произошло, но вы отдохнули.", action: () => { showNotification("Спокойная дорога."); } }
+        ];
+
+        function loadGameState() {
+            const saved = localStorage.getItem('life_studio_pro_v2_state');
+            if (saved) {
+                try { gameState = JSON.parse(saved); } catch(e) { console.error(e); }
+            }
+            checkAutomaticDailyReset();
+            updateUi();
+            setInterval(gameLoopTicker, 1000);
+        }
+
+        function saveGameState() {
+            localStorage.setItem('life_studio_pro_v2_state', JSON.stringify(gameState));
+        }
+
+        function checkAutomaticDailyReset() {
+            const todayStr = new Date().toDateString();
+            if (gameState.lastLoginDate !== todayStr) {
+                if (gameState.lastLoginDate) {
+                    const uncompleted = gameState.quests.filter(q => q.type === 'daily' && !q.isCompletedToday);
+                    if (uncompleted.length > 0) {
+                        gameState.dailyStreak = 0;
+                        gameState.missedDays++;
+                    } else {
+                        gameState.dailyStreak++;
+                        gameState.gold += 20;
+                        gameState.xp += 30;
+                    }
+                }
+                gameState.quests.forEach(q => q.isCompletedToday = false);
+                gameState.lastLoginDate = todayStr;
+                saveGameState();
+            }
+        }
+
+        function gameLoopTicker() {
+            const now = Date.now();
+            let updated = false;
+            gameState.regions.forEach(reg => {
+                if (reg.exploring && reg.finishTime && now >= reg.finishTime) {
+                    reg.exploring = false;
+                    reg.finishTime = null;
+                    reg.progress = Math.min(100, reg.progress + 25);
+                    updated = true;
+
+                    // Случайное событие в экспедиции
+                    const ev = travelEvents[Math.floor(Math.random() * travelEvents.length)];
+                    showNotification(`🗺️ Событие: ${ev.title} — ${ev.desc}`);
+                    ev.action();
+                }
+            });
+
+            if (gameState.shiftEndTime) {
+                const [h, m] = gameState.shiftEndTime.split(':').map(Number);
+                const target = new Date();
+                target.setHours(h, m, 0, 0);
+                const diff = target - now;
+                const txt = document.getElementById('shift-countdown-text');
+                if (txt) {
+                    if (diff > 0) {
+                        const hrs = Math.floor(diff / (1000 * 60 * 60));
+                        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        txt.innerText = `${hrs}ч ${mins}м`;
+                    } else {
+                        txt.innerText = "Завершена";
+                    }
+                }
+            }
+            if (updated) { saveGameState(); updateUi(); }
+        }
+
+        function updateUi() {
+            document.getElementById('player-name').innerText = gameState.nickname;
+            document.getElementById('player-lvl-badge').innerText = gameState.level;
+            document.getElementById('player-gold').innerText = gameState.gold;
+            document.getElementById('stat-streak').innerText = gameState.dailyStreak;
+
+            document.getElementById('shift-name-label').innerText = gameState.shiftName || "Рабочая смена";
+            document.getElementById('shift-time-label').innerText = gameState.shiftEndTime || "18:00";
+
+            const xpNeeded = gameState.level * 100;
+            document.getElementById('player-xp-text').innerText = `${gameState.xp} / ${xpNeeded} XP`;
+            document.getElementById('player-xp-bar').style.width = `${Math.min((gameState.xp/xpNeeded)*100, 100)}%`;
+
+            // Профиль
+            document.getElementById('profile-name').innerText = gameState.nickname;
+            document.getElementById('profile-lvl').innerText = gameState.level;
+            document.getElementById('profile-title-text').innerText = gameState.title || "Искатель приключений";
+            document.getElementById('profile-endurance').innerText = gameState.endurance;
+            document.getElementById('profile-spirituality').innerText = gameState.spirituality;
+
+            const editBtn = document.getElementById('btn-edit-mode');
+            if (editBtn) {
+                editBtn.innerText = editMode ? "Готово" : "Правка";
+            }
+
+            renderQuests();
+            renderWorldMap();
+            renderInventory();
+            renderProfileStats();
+        }
+
+        function switchTab(tabName) {
+            ['quests', 'world', 'profile'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`btn-tab-${t}`);
+                if (btn) { btn.classList.remove('text-orange-500'); btn.classList.add('text-zinc-500'); }
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-tab-${tabName}`);
+            if (activeBtn) { activeBtn.classList.add('text-orange-500'); activeBtn.classList.remove('text-zinc-500'); }
+        }
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            updateUi();
+        }
+
+        function toggleDrawer(show) {
+            document.getElementById('drawer-menu').classList.toggle('hidden', !show);
+        }
+
+        function openMenuSection(section) {
+            toggleDrawer(false);
+            const modal = document.getElementById('section-modal');
+            const title = document.getElementById('section-modal-title');
+            const content = document.getElementById('section-modal-content');
+            modal.classList.remove('hidden');
+
+            if (section === 'settings') {
+                title.innerText = "Настройки приложения";
+                content.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] space-y-2">
+                            <h5 class="font-semibold text-zinc-200">Профиль</h5>
+                            <button onclick="openNicknameModal(); closeSectionModal();" class="app-btn w-full py-1.5 rounded-lg text-xs">Изменить ник</button>
+                            <button onclick="changeTitlePrompt()" class="app-btn w-full py-1.5 rounded-lg text-xs">Изменить титул</button>
+                            <button onclick="resetProgress()" class="w-full py-1.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-medium">Сбросить прогресс</button>
+                        </div>
+                        <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] space-y-2">
+                            <h5 class="font-semibold text-zinc-200">Рабочая смена</h5>
+                            <input id="set-shift-name" type="text" value="${gameState.shiftName || 'Рабочая смена'}" class="w-full bg-[#18181b] border border-[#27272a] rounded px-2 py-1 text-xs text-zinc-200">
+                            <input id="set-shift-time" type="time" value="${gameState.shiftEndTime || '18:00'}" class="w-full bg-[#18181b] border border-[#27272a] rounded px-2 py-1 text-xs text-zinc-200">
+                            <button onclick="saveShiftSettings()" class="app-btn app-btn-primary w-full py-1.5 rounded-lg text-xs font-medium">Сохранить смену</button>
+                        </div>
+                    </div>
+                `;
+            } else if (section === 'shop') {
+                title.innerText = "Магазин Наград";
+                const cats = ["all", "Отдых", "Развлечения"];
+                content.innerHTML = `
+                    <div class="flex gap-1.5 mb-2">
+                        ${cats.map(c => `<button onclick="shopCategoryFilter='${c}'; openMenuSection('shop');" class="px-2 py-1 rounded text-[10px] ${shopCategoryFilter===c ? 'bg-orange-500 text-white' : 'bg-[#18181b] text-zinc-400'}">${c}</button>`).join('')}
+                    </div>
+                    <div class="space-y-2">
+                        ${gameState.rewards.filter(r => shopCategoryFilter==='all' || r.category===shopCategoryFilter).map(r => `
+                            <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-semibold text-zinc-200">${r.icon} ${r.name}</h4>
+                                    <p class="text-[10px] text-zinc-500">${r.desc}</p>
+                                    <span class="text-orange-400 text-[11px] font-mono">${r.cost} 🪙</span>
+                                </div>
+                                <button onclick="buyReward(${r.id}, ${r.cost})" class="app-btn px-3 py-1.5 rounded-lg text-xs font-medium">Купить</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (section === 'notes') {
+                title.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <input id="note-search" type="text" placeholder="Поиск заметок..." oninput="noteSearchQuery=this.value; openMenuSection('notes');" class="bg-[#0f0f11] border border-[#27272a] rounded px-2 py-1 text-xs text-zinc-200 w-36">
+                        <button onclick="toggleModal('modal-add-note', true); closeSectionModal();" class="app-btn px-2.5 py-1 rounded-lg text-xs">+ Заметка</button>
+                    </div>
+                ` + gameState.notes.filter(n => n.text.toLowerCase().includes((noteSearchQuery||'').toLowerCase())).map(n => `
+                    <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] flex justify-between items-center">
+                        <div>
+                            <span class="text-[9px] text-zinc-500 block">${n.date}</span>
+                            <span class="text-xs text-zinc-200">${n.text}</span>
+                        </div>
+                        <button onclick="deleteNote(${n.id}); openMenuSection('notes');" class="text-red-400"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                `).join('');
+            } else if (section === 'plans') {
+                title.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h5 class="font-semibold text-zinc-200">Планы и Цели</h5>
+                        <button onclick="toggleModal('modal-add-plan', true); closeSectionModal();" class="app-btn px-2.5 py-1 rounded-lg text-xs">+ План</button>
+                    </div>
+                ` + gameState.plans.map(p => `
+                    <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] space-y-2">
+                        <div class="flex justify-between items-center"><h5 class="font-semibold text-zinc-200">${p.title}</h5><span class="text-[10px] text-orange-400 font-mono">${p.progress}%</span></div>
+                        <p class="text-[10px] text-zinc-400">${p.desc}</p>
+                        <div class="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full" style="width: ${p.progress}%"></div></div>
+                        <div class="flex gap-2">
+                            <button onclick="advancePlan(${p.id}); openMenuSection('plans');" class="app-btn flex-1 py-1 rounded text-[10px]">+25%</button>
+                            <button onclick="deletePlan(${p.id}); openMenuSection('plans');" class="app-btn py-1 px-2 rounded text-[10px] text-red-400"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            } else if (section === 'bosses') {
+                title.innerText = "Эпические Боссы";
+                content.innerHTML = gameState.bosses.map(b => `
+                    <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] space-y-1.5">
+                        <h4 class="font-semibold text-orange-400">${b.name}</h4>
+                        <p class="text-zinc-400">${b.desc}</p>
+                        ${b.type === 'hp' ? `<span class="text-rose-400 font-mono text-[11px]">HP: ${b.hp}/${b.maxHp}</span>` : `<span class="text-amber-400 font-mono text-[11px]">Цель: ${b.currentKzt}/${b.targetKzt} ₸</span>`}
+                    </div>
+                `).join('');
+            } else if (section === 'skills') {
+                title.innerText = "Древо Навыков";
+                content.innerHTML = Object.keys(gameState.skills).map(k => `
+                    <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] flex justify-between items-center">
+                        <span class="capitalize text-zinc-300">${k} (Ур. ${gameState.skills[k]})</span>
+                        <button onclick="upgradeSkill('${k}')" class="app-btn px-3 py-1 rounded-lg text-xs font-medium">Прокачать</button>
+                    </div>
+                `).join('');
+            } else if (section === 'achievements') {
+                title.innerText = "Достижения";
+                content.innerHTML = `<div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a]"><h4 class="font-semibold text-orange-400">🔥 Серия входов</h4><p class="text-zinc-400 mt-1">Текущий стрик: ${gameState.dailyStreak} дней</p></div>`;
+            } else if (section === 'zen') {
+                title.innerText = "Уголок Дзен";
+                content.innerHTML = `<div class="bg-[#0f0f11] p-4 rounded-xl border border-[#27272a] text-center"><p class="italic text-zinc-300">«Спокойствие ума — лучшая броня от стрел судьбы.»</p></div>`;
+            }
+        }
+
+        function closeSectionModal() {
+            document.getElementById('section-modal').classList.add('hidden');
+        }
+
+        function renderWorldMap() {
+            const container = document.getElementById('world-regions-list');
+            container.innerHTML = '';
+            gameState.regions.forEach(reg => {
+                let actionBtn = reg.exploring ? `<span class="text-orange-400 text-xs">В пути...</span>` : `<button onclick="startExpedition('${reg.id}')" class="app-btn px-3 py-1.5 rounded-lg text-xs font-medium">Путь</button>`;
+
+                container.innerHTML += `
+                    <div class="app-card p-3.5 rounded-2xl flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#0f0f11] border border-[#27272a] flex items-center justify-center text-orange-400">
+                                <i class="fa-solid ${reg.icon}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-xs text-zinc-200">${reg.name}</h4>
+                                <p class="text-[10px] text-zinc-500">${reg.desc}</p>
+                            </div>
+                        </div>
+                        <div>${actionBtn}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function startExpedition(id) {
+            const reg = gameState.regions.find(r => r.id === id);
+            if (reg && !reg.exploring && reg.unlocked) {
+                reg.exploring = true;
+                reg.finishTime = Date.now() + 15000;
+                saveGameState();
+                updateUi();
+                showNotification(`Экспедиция в "${reg.name}" началась!`);
+            }
+        }
+
+        function renderQuests() {
+            const container = document.getElementById('quests-list');
+            container.innerHTML = '';
+            gameState.quests.forEach(q => {
+                const card = document.createElement('div');
+                card.className = `app-card p-3 rounded-2xl flex items-center justify-between transition-all ${q.isCompletedToday ? 'opacity-40' : ''}`;
+                let editBox = editMode ? `<button onclick="deleteQuest(${q.id})" class="text-red-400 px-2"><i class="fa-solid fa-trash text-xs"></i></button>` : '';
+
+                card.innerHTML = `
+                    <div class="flex-1 pr-2">
+                        <h4 class="font-medium text-xs text-zinc-200 ${q.isCompletedToday ? 'line-through text-zinc-500' : ''}">${q.title}</h4>
+                        <span class="text-orange-400 font-mono text-[10px]">+${q.rewardGold} 🪙 / +${q.rewardXp} XP</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        ${editBox}
+                        <button onclick="completeQuest(${q.id})" ${q.isCompletedToday ? 'disabled' : ''} class="app-btn ${q.isCompletedToday ? '' : 'app-btn-primary'} px-3 py-1.5 rounded-xl text-xs font-medium">
+                            ${q.isCompletedToday ? 'Готово' : 'Закрыть'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function completeQuest(id) {
+            const q = gameState.quests.find(quest => quest.id === id);
+            if (q && !q.isCompletedToday) {
+                q.isCompletedToday = true;
+                gameState.totalQuestsDone++;
+                gameState.gold += q.rewardGold;
+                gameState.xp += q.rewardXp;
+                checkLevelUp();
+                showNotification(`+${q.rewardXp} XP получено`);
+                saveGameState();
+                updateUi();
+            }
+        }
+
+        function deleteQuest(id) {
+            gameState.quests = gameState.quests.filter(q => q.id !== id);
+            saveGameState();
+            updateUi();
+        }
+
+        function createNewQuest() {
+            const title = document.getElementById('new-quest-title').value.trim();
+            const stat = document.getElementById('new-quest-stat').value;
+            const gold = parseInt(document.getElementById('new-quest-gold').value) || 15;
+            if (!title) return;
+            gameState.quests.unshift({ id: Date.now(), title, rewardGold: gold, rewardXp: gold * 2, stat, type: 'custom', isCompletedToday: false });
+            toggleModal('modal-add-quest', false);
+            saveGameState();
+            updateUi();
+        }
+
+        function renderInventory() {
+            const container = document.getElementById('inventory-list');
+            container.innerHTML = gameState.inventory.map(i => `
+                <div class="bg-[#0f0f11] p-3 rounded-xl border border-[#27272a] flex justify-between items-center">
+                    <div>
+                        <span class="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">${i.rarity}</span>
+                        <h5 class="font-semibold text-xs text-zinc-200 mt-1">${i.name}</h5>
+                        <p class="text-[10px] text-zinc-500 mt-0.5">${i.desc}</p>
+                    </div>
+                    ${i.effect ? `<button onclick="useInventoryItem(${i.id})" class="app-btn px-2.5 py-1 rounded-lg text-[10px] font-medium text-emerald-400">Использовать</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function useInventoryItem(id) {
+            const idx = gameState.inventory.findIndex(i => i.id === id);
+            if (idx !== -1) {
+                const item = gameState.inventory[idx];
+                if (item.effect && item.effect.type === 'energy') {
+                    gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + item.effect.val);
+                    showNotification(`Использовано: ${item.name}! (+${item.effect.val} энергии)`);
+                    gameState.inventory.splice(idx, 1);
+                    saveGameState();
+                    updateUi();
+                }
+            }
+        }
+
+        function renderProfileStats() {
+            const container = document.getElementById('profile-stats-grid');
+            container.innerHTML = `
+                <div class="bg-[#0f0f11] p-2.5 rounded-xl border border-[#27272a]"><span class="text-zinc-500 block text-[10px]">Квесты</span><span class="text-emerald-400 font-semibold">${gameState.totalQuestsDone}</span></div>
+                <div class="bg-[#0f0f11] p-2.5 rounded-xl border border-[#27272a]"><span class="text-zinc-500 block text-[10px]">Золото</span><span class="text-orange-400 font-semibold">${gameState.totalGoldEarned}</span></div>
+                <div class="bg-[#0f0f11] p-2.5 rounded-xl border border-[#27272a]"><span class="text-zinc-500 block text-[10px]">Боссы</span><span class="text-rose-400 font-semibold">${gameState.bossesDefeated}</span></div>
+                <div class="bg-[#0f0f11] p-2.5 rounded-xl border border-[#27272a]"><span class="text-zinc-500 block text-[10px]">Стрик</span><span class="text-purple-400 font-semibold">${gameState.dailyStreak} дн.</span></div>
+            `;
+        }
+
+        function upgradeSkill(k) {
+            if ((gameState.skillPoints || 0) > 0) {
+                gameState.skillPoints--;
+                gameState.skills[k]++;
+                saveGameState();
+                updateUi();
+                showNotification("Навык улучшен!");
+            } else {
+                showNotification("Нет очков навыков.");
+            }
+        }
+
+        function checkLevelUp() {
+            let xpNeeded = gameState.level * 100;
+            while (gameState.xp >= xpNeeded) {
+                gameState.xp -= xpNeeded;
+                gameState.level++;
+                gameState.skillPoints++;
+                showNotification(`Уровень повышен! (${gameState.level} LVL)`);
+                xpNeeded = gameState.level * 100;
+            }
+        }
+
+        function buyReward(id, cost) {
+            if (gameState.gold >= cost) {
+                gameState.gold -= cost;
+                saveGameState();
+                showNotification("Награда успешно куплена!");
+            } else {
+                showNotification("Недостаточно золота.");
+            }
+        }
+
+        function createNewPlan() {
+            const title = document.getElementById('new-plan-title').value.trim();
+            const desc = document.getElementById('new-plan-desc').value.trim();
+            if (!title) return;
+            gameState.plans.unshift({ id: Date.now(), title, desc, progress: 0 });
+            toggleModal('modal-add-plan', false);
+            saveGameState();
+            showNotification("План добавлен.");
+        }
+
+        function advancePlan(id) {
+            const p = gameState.plans.find(x => x.id === id);
+            if (p) {
+                p.progress = Math.min(100, p.progress + 25);
+                if (p.progress === 100) {
+                    gameState.gold += 50;
+                    showNotification("🏆 План выполнен! +50 🪙");
+                }
+                saveGameState();
+            }
+        }
+
+        function deletePlan(id) {
+            gameState.plans = gameState.plans.filter(p => p.id !== id);
+            saveGameState();
+        }
+
+        function createNewNote() {
+            const title = document.getElementById('new-note-title').value.trim();
+            const text = document.getElementById('new-note-text').value.trim();
+            if (!text) return;
+            const now = new Date();
+            const dateStr = `${String(now.getDate()).padStart(2,'0')}.${String(now.getMonth()+1).padStart(2,'0')}.${now.getFullYear()}`;
+            gameState.notes.unshift({ id: Date.now(), title, text, date: dateStr });
+            toggleModal('modal-add-note', false);
+            saveGameState();
+            showNotification("Заметка сохранена.");
+        }
+
+        function deleteNote(id) {
+            gameState.notes = gameState.notes.filter(n => n.id !== id);
+            saveGameState();
+        }
+
+        function saveNickname() {
+            const name = document.getElementById('nickname-input').value.trim();
+            if (name) {
+                gameState.nickname = name;
+                toggleModal('modal-edit-nickname', false);
+                saveGameState();
+                updateUi();
+            }
+        }
+        function openNicknameModal() {
+            document.getElementById('nickname-input').value = gameState.nickname;
+            toggleModal('modal-edit-nickname', true);
+        }
+
+        function changeTitlePrompt() {
+            const t = prompt("Введите новый титул:", gameState.title || "Искатель");
+            if (t) { gameState.title = t; saveGameState(); updateUi(); showNotification("Титул изменен!"); }
+        }
+
+        function resetProgress() {
+            if (confirm("Вы уверены, что хотите сбросить весь прогресс?")) {
+                localStorage.removeItem('life_studio_pro_v2_state');
+                location.reload();
+            }
+        }
+
+        function saveShiftSettings() {
+            gameState.shiftName = document.getElementById('set-shift-name').value || "Рабочая смена";
+            gameState.shiftEndTime = document.getElementById('set-shift-time').value || "18:00";
+            saveGameState();
+            updateUi();
+            closeSectionModal();
+            showNotification("Настройки смены сохранены!");
+        }
+
+        function toggleModal(id, show) {
+            document.getElementById(id).classList.toggle('hidden', !show);
+        }
+
+        function showNotification(text) {
+            const toast = document.createElement('div');
+            toast.className = "fixed top-4 left-1/2 transform -translate-x-1/2 bg-[#27272a] border border-[#3f3f46] text-zinc-100 px-4 py-2 rounded-xl text-xs z-50 animate-fade shadow-lg";
+            toast.innerText = text;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gameState));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "life_studio_pro_v2_save.json");
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+
+        function importDataPrompt() {
+            const jsonStr = prompt("Вставьте JSON:");
+            if (jsonStr) {
+                try {
+                    gameState = JSON.parse(jsonStr);
+                    saveGameState();
+                    updateUi();
+                    showNotification("Успешно импортировано!");
+                } catch(e) { alert("Ошибка JSON"); }
+            }
+        }
+
+        window.onload = loadGameState;
+    </script>
+</body>
+</html>
