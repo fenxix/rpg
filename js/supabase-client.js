@@ -6,6 +6,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Регистрация Service Worker для PWA (офлайн-кэш)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+
 // Тема (светлая/тёмная) — применяется сразу, до отрисовки страницы, чтобы не было мигания
 (function () {
   const saved = localStorage.getItem('liferpg-theme') || 'light';

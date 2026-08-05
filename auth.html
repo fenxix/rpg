@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>LifeRPG — Вход</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#D97F4F">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/supabase-client.js"></script>
@@ -161,7 +167,8 @@ input:checked + .slider::before { transform: translateX(16px); background: var(-
 
 .auth-header { padding: 36px 24px 20px; text-align: center; position: relative; }
 .auth-theme-toggle { position: absolute; top: 16px; right: 16px; width: 38px; height: 38px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
-.auth-crest { width: 60px; height: 60px; margin: 0 auto 14px; border-radius: 20px; background: linear-gradient(135deg, #E8A96F, var(--terracotta)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); font-size: 24px; }
+.auth-crest { width: 84px; height: 84px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; }
+.auth-crest img { width: 100%; height: 100%; }
 .auth-header h1 { font-size: 19px; font-weight: 800; margin: 0 0 4px; }
 .sub { font-size: 12px; color: var(--dim); margin: 0; font-weight: 600; }
 .auth-body { padding: 0 20px 24px; }
@@ -237,7 +244,7 @@ input:checked + .slider::before { transform: translateX(16px); background: var(-
 <div class="phone">
   <div class="auth-header">
     <button class="auth-theme-toggle" onclick="toggleTheme()"><span class="theme-icon icon-emoji">🌙</span></button>
-    <div class="auth-crest"><span class="icon-emoji">⬆️</span></div>
+    <div class="auth-crest"><img src="icons/badge-full.png" alt="LifeRPG"></div>
     <h1>LifeRPG</h1>
     <p class="sub">Level up your real life</p>
   </div>
@@ -254,6 +261,7 @@ input:checked + .slider::before { transform: translateX(16px); background: var(-
       <label>Пароль</label>
       <input type="password" id="login-password" placeholder="••••••••">
       <button class="btn btn-block" style="margin-top:20px;" id="login-submit" onclick="handleLogin()">Войти в мир</button>
+      <span class="back-link" style="display:block;text-align:center;margin-top:12px;font-size:12px;color:var(--dim);font-weight:700;cursor:pointer;text-decoration:underline;" onclick="location.href='forgot-password.html'">Забыл(а) пароль?</span>
     </div>
 
     <div id="tab-register" style="display:none;">
@@ -327,7 +335,10 @@ input:checked + .slider::before { transform: translateX(16px); background: var(-
 
     const btn = document.getElementById('register-submit');
     btn.disabled = true; btn.innerText = 'Создаём...';
-    const { data, error } = await sb.auth.signUp({ email, password });
+    const { data, error } = await sb.auth.signUp({
+      email, password,
+      options: { emailRedirectTo: window.location.href.replace('auth.html', 'confirm.html') }
+    });
 
     if (error) { btn.disabled = false; btn.innerText = 'Создать персонажа'; return showError(translateAuthError(error.message)); }
 
